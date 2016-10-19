@@ -1,0 +1,3 @@
+# Text file containing hashes of form <hash> <filename>
+# e.g.
+# 9b8cf2548b507334aad5ffc0de9d323e2189a847 my_first_image.nii

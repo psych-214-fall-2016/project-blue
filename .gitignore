@@ -1,0 +1,18 @@
+# Temporary editor files
+*~
+*.swp
+*.bak
+# Compiled Python files
+*.pyc
+__pycache__/
+# pytest cache
+.cache/
+# Patch files from merges and rebases
+*.orig
+# Installation stuff
+*-egg-info/
+build/
+dist/
+# Mac cruft
+.DS_Store?
+Thumbs.db
