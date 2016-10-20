@@ -1,3 +1,4 @@
 # Requirements to run code in project
 numpy
 nibabel
+scipy
