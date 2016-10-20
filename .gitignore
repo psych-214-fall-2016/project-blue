@@ -10,7 +10,7 @@ __pycache__/
 # Patch files from merges and rebases
 *.orig
 # Installation stuff
-*-egg-info/
+*.egg-info/
 build/
 dist/
 # Mac cruft
