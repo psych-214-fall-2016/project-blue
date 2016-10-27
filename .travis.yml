@@ -1,0 +1,32 @@
+# This file runs automated testing on travis-ci.org cloud machines
+language: python
+
+python:
+    - 3.4
+    - 3.5
+
+matrix:
+  include:
+    - python: 3.5
+      env:
+        - COVERAGE=1
+
+before_install:
+    - python -m pip install -U pip
+    - pip install pytest
+    - if [ "${COVERAGE}" == "1" ]; then pip install pytest-cov codecov; fi
+
+install:
+    # Install project requirements
+    - pip install -r requirements.txt
+    # Install fmri_utils package / scripts in code directory
+    - pip install ./code
+
+script:
+    - if [ "${COVERAGE}" == "1" ]; then
+      COVER_ARGS="--cov";
+      fi
+    - py.test $COVER_ARGS code
+
+after_success:
+    - if [ "${COVERAGE}" == "1" ]; then codecov; fi

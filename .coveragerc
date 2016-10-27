@@ -1,0 +1,4 @@
+[run]
+branch = True
+source = code
+omit = code/setup.py
