@@ -143,4 +143,4 @@ def create_contrast_img(B, C, vol_shape):
     # create Bmap
     Bmap = C.T.dot(B)
     # return reshaped image
-    return np.reshape(Bmap.T, (data_shape))
+    return np.reshape(Bmap, (vol_shape))
