@@ -16,3 +16,5 @@ dist/
 # Mac cruft
 .DS_Store?
 Thumbs.db
+# Coverage temporary file
+.coverage
