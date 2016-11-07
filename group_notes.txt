@@ -1,0 +1,25 @@
+*************** 11-04-16, MLN ***************
+General group announcements:
+
+- The first project pitch PowerPoint has been uploaded to google drive so that
+shared edits can be made in real time without needing to meet in-person. The
+goal is to alter the original version to make version for Monday's analysis
+pitch.
+
+- Additional '-.py' files have been added to project-blue/code. These are two
+suggested preprocessing templates made and provided by group mentor Arielle
+Tambini (hence the "AT_-" at front of both filenames.) We may or may not use her
+suggested preprocessing because they may rely too heavy on automated programs,
+but her suggestions are appreciated!
+
+Next steps for project planning:
+
+Potential preprocessing pipeline-
+  Outlier detection
+  Slice timing correction
+  Motion correction
+  Registration
+
+Baseline analysis-
+Average of all correct picture trials contrasted with average of all word trials
+to find differences in signal between "picture" and "word" conditions.
