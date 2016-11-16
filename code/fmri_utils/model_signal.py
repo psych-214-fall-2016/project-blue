@@ -6,13 +6,14 @@ from scipy.stats import gamma
 
 def data_timecourse(data_fname, coord, mask=[], d=4):
     """ return data time course for coordinate or all voxels
-    Inputs:
-    -------
+    Parameters
+    ----------
     data_fname : str, a data filename to return timecourse
     coord : array of coordinates or empty array to return all timecourses
     mask : array of voxels to include in analysis [default is all voxels]
     d : number of dummy trs to remove [optional; default = 4]
-    Output:
+
+    Returns
     -------
     timecourse : array of timecourse for single voxel or all voxels with size of
     (n_trs, n_voxels)
@@ -37,68 +38,74 @@ def data_timecourse(data_fname, coord, mask=[], d=4):
     else:
         return np.reshape(data, (np.prod(vol_shape), n_vols)).T
 
-def create_design_matrix(task_fname, tr, n_tr, d=4):
+def create_design_matrix(time_course, tr, n_tr, d=4):
     """ return design matrix using event file
-    Inputs:
-    -------
-    task_fname : list or str of event filename(s) containing the onsets/durations
-    for the task
+    Parameters
+    ----------
+    time_course : event time_course returned from event_timecourse function
     tr : number, repetition time in seconds
     n_tr : number, number of TRs
     d : number of dummy trs to remove [optional; default = 4]
-    Outputs:
-    --------
-    X : array, design matrix (including column of 1s)
+
+    Returns
+    -------
+    X : array, design matrix (including column of 1s last)
     """
-    # ensure task_fname is list
-    if type(task_fname) != list:
-        task_fname = list([task_fname])
     # create design matrix
-    X = np.ones((n_tr - d, len(task_fname) + 1))
+    X = np.ones((n_tr - d, time_course.shape[1] + 1))
     # create tr_times
     tr_times = np.arange(0, 30, tr)
     # get hrf_at_trs
     hrf_at_trs = hrf(tr_times)
-    # for each file, get time_course and convolve with hrf
-    for i, fname in enumerate(task_fname):
-        # get event time course
-        time_course = event_timecourse(fname, tr, n_tr)
+    n_to_remove = len(hrf_at_trs) - 1
+    # convolve for each column and input to design matrix
+    for i in range(time_course.shape[1]):
         # convolve with hrf
-        convolved = np.convolve(time_course, hrf_at_trs)
-        n_to_remove = len(hrf_at_trs) - 1
+        convolved = np.convolve(time_course[:,i], hrf_at_trs)
         convolved = convolved[d:-n_to_remove]
         # set convolved to X
         X[:,i] = convolved
     return X
 
-def event_timecourse(task_fname, tr, n_tr):
+def event_timecourse(task_fname, condition_list, tr, n_tr):
     """ return time course from event files
-    Inputs:
-    -------
+    Parameters
+    ----------
     task_fname : str, event filename containing onsets/durations for the task
+    condition_list : list, condition names within task_fname column 3, indicating
+    the condition for each corresponding event
     tr : number, repetition time in seconds
     n_tr : number, number of TRs
+
+    Returns
+    -------
+    time_course : numpy array with columns in order of conditions in condition_list
+    and rows corresponding to events in the fmri run.
     """
     # load task file
-    task = np.loadtxt(task_fname)
+    task = np.genfromtxt(task_fname, dtype='str')
+    # remove first row
+    task = task[1:, :]
     # convert to trs
-    task[:, :2] = task[:, :2] / tr
+    task[:, :2] = task[:, :2].astype(np.float) / tr
     # initialize time_course
-    time_course = np.zeros(n_tr)
-    # for each onset, round onset/duration and set time_course
-    for onset, duration, amplitude in task:
-        onset = int(round(onset))
-        duration = int(round(duration))
-        time_course[onset:onset + duration] = amplitude
+    time_course = np.zeros((n_tr, len(condition_list)))
+    # for each onset, round onset and duration and set time_course
+    for onset, duration, condition in task:
+        onset = int(round(onset.astype(np.float)))
+        duration = int(round(duration.astype(np.float)))
+        # set time course for row events and column condition to 1
+        time_course[onset:onset + duration, condition_list.index(condition)] = 1
     return time_course
 
 def hrf(times):
     """ Return values for HRF at given times
-    Inputs:
-    -------
+    Parameters
+    ----------
     times : number or array, timepoints to sample hrf
-    Outputs:
-    --------
+
+    Returns
+    -------
     hrf : number or array, hrf values at given timepoints
     """
     # Gamma pdf for the peak
@@ -112,12 +119,13 @@ def hrf(times):
 
 def b_e_calc(Y, X):
     """ Return beta hat and residuals
-    Inputs:
-    -------
+    Parameters
+    ----------
     Y : array, data to fit
     X : array, design matrix of predictors
-    Outputs:
-    --------
+
+    Returns
+    -------
     B : array, beta hat values with size of (number of X columns, number of Y columns)
     e : array, residuals with size of (number of TRs, number of Y columns)
     """
@@ -129,13 +137,14 @@ def b_e_calc(Y, X):
 
 def create_contrast_img(B, C, vol_shape):
     """ Return Contrast image of B map
-    Inputs:
-    -------
+    Parameters
+    ----------
     B : array, beta hat values
     C : array, contrast vector
     vol_shape : array, shape of volume
-    Outputs:
-    --------
+
+    Returns
+    -------
     Bmap : contrast image of beta values
     """
     # ensure contrast is array
