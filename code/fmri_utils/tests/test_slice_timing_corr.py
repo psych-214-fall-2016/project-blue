@@ -1,3 +1,5 @@
+import numpy as np
+
 def test_slice_timing_corr():
     """
     Test should create 4D fake data and put through the slice timing code
