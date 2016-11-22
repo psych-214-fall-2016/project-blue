@@ -1,5 +1,5 @@
 import numpy as np
-from fmri_utils import slice_timing_corr
+from fmri_utils import slice_timing_corr.slice_timing_corr
 
 def test_slice_timing_corr():
     """
