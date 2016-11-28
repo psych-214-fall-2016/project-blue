@@ -26,8 +26,8 @@ def test_data_timecourse():
     img = nib.load(EXAMPLE_FULLPATH)
     data = img.get_data()
     # get random coordinates and number of dummy frames
-    coord = [np.random.randint(0,data.shape[i]) for i in range(3)]
-    d_n = np.random.randint(0,data.shape[-1])
+    coord = [np.random.randint(data.shape[i]) for i in range(3)]
+    d_n = np.random.randint(data.shape[-1])
     # remove dummy frames
     data = data[..., d_n:]
     # get timecourse from coord manually
@@ -37,7 +37,7 @@ def test_data_timecourse():
     # assert same for coordinates
     assert np.allclose(t_c0, t_c1, rtol=1e-4)
     # create random mask
-    mask = np.random.randint(2,size=data.shape[:-1],dtype=bool)
+    mask = np.random.randint(2,size=data.shape[:-1]).astype(bool)
     # get timecourse for mask
     t_c2 = data[mask].T
     t_c3 = data_timecourse(EXAMPLE_FULLPATH, [], mask, d_n)
@@ -56,7 +56,7 @@ def test_create_design_matrix():
     d_n = np.random.randint(n_tr)
     # create random timecourse of 0s and 1s with random n of columns
     col_n = np.random.randint(10)
-    t_c = np.random.randint(0,2,(n_tr, col_n))
+    t_c = np.random.randint(2,size=(n_tr, col_n))
     # create design matrix manually
     des0 = np.ones((n_tr - d_n, t_c.shape[1]+1))
     hrf_at_trs = hrf(np.arange(0, 30, tr))
