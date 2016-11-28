@@ -25,17 +25,16 @@ def data_timecourse(data_fname, coord, mask=[], d=4):
     data = img.get_data()
     # get n_vols and vol_shape
     n_vols = data.shape[-1] - d
-    vol_shape = data.shape[:3]
-    # if no mask, create
-    if len(mask) == 0:
-        mask = np.ones(data.shape[:3], dtype=bool)
-    # remove first n dummies and constrict with mask
-    data = data[mask, d:]
-    data = np.reshape(data, vol_shape + (n_vols,))
+    vol_shape = data.shape[:-1]
+    # remove dummy frames
+    data = data[..., d:]
+    # return time course for mask
+    if len(mask) > 0:
+        return data[mask].T
     # return time course for voxel
-    if len(coord) > 0:
+    elif len(coord) > 0:
         return data[coord[0],coord[1],coord[2]]
-    else:
+    else: # return all voxels
         return np.reshape(data, (np.prod(vol_shape), n_vols)).T
 
 def create_design_matrix(time_course, tr, n_tr, d=4):
