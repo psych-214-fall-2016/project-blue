@@ -37,7 +37,7 @@ def test_data_timecourse():
     # assert same for coordinates
     assert np.allclose(t_c0, t_c1, rtol=1e-4)
     # create random mask
-    mask = np.random.randint(0,2,data.shape[:-1],'bool')
+    mask = np.random.randint(2,size=data.shape[:-1],dtype=bool)
     # get timecourse for mask
     t_c2 = data[mask].T
     t_c3 = data_timecourse(EXAMPLE_FULLPATH, [], mask, d_n)
