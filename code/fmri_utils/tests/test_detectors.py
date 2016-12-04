@@ -15,14 +15,12 @@ import nibabel as nib
 # This import needs the code directory on the Python PATH
 from fmri_utils import mean_detector, std_detector, iqr_detector
 
-# Imports for testing
-from numpy.testing import assert_almost_equal
-
 def test_mean_detector():
     # create data of ones and outliers to set large means
     data = np.ones((64,64,30,100))
     outliers0 = np.random.randint(100,size=(7,))
     outliers0 = np.sort(outliers0)
+    outliers0 = np.unique(outliers0)
     # set trs to large standard deviations
     data[...,outliers0] = 100
     # get standard deviations for each volume
@@ -40,6 +38,7 @@ def test_std_detector():
     data = np.ones((64,64,30,100))
     outliers0 = np.random.randint(100,size=(7,))
     outliers0 = np.sort(outliers0)
+    outliers0 = np.unique(outliers0)
     # set trs to large standard deviations
     data[:,:,0:15,outliers0] = -100
     data[:,:,15:,outliers0] = 100
