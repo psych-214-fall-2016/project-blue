@@ -18,7 +18,17 @@ import numpy as np
 import numpy.linalg as npl
 
 def mean_detector(data):
-    """
+    """ Get outliers due to mean volumes using IQR
+    Parameters
+    ----------
+    data : 4D array
+        data to check for outliers along 4th dimension
+    Returns
+    -------
+    vol_mean : 1D array
+        means for each volume along 4th dimension
+    outliers : 1D array
+        outlier volumes based on IQR
     """
     # init vol_mean
     vol_mean = []
@@ -32,7 +42,17 @@ def mean_detector(data):
     return vol_mean, outliers
 
 def std_detector(data):
-    """
+    """ Get outliers due to standard deviation volumes using IQR
+    Parameters
+    ----------
+    data : 4D array
+        data to check for outliers along 4th dimension
+    Returns
+    -------
+    vol_std : 1D array
+        standard deviations for each volume along 4th dimension
+    outliers : 1D array
+        outlier volumes based on IQR
     """
     # init volume standard deviations
     vol_std = []
@@ -76,8 +96,6 @@ def iqr_detector(measures, iqr_proportion=1.5):
         A boolean vector of same length as `measures`, where True means the
         corresponding value in `measures` is an outlier.
     """
-    # improt numpy
-    import numpy as np
 
     # calculate 25, 50, 75 percentiles of measures
     Q1, Q3 = np.percentile(measures, [25,75])
@@ -94,5 +112,5 @@ def iqr_detector(measures, iqr_proportion=1.5):
 
     # get indices of outlier_tf
     outlier_i = [i for i, x in enumerate(outlier_tf) if x]
-
+    
     return outlier_tf, outlier_i
