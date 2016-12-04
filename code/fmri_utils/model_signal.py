@@ -2,6 +2,7 @@
 import numpy as np
 import numpy.linalg as npl
 import nibabel as nib
+import scipy.stats as sst
 from scipy.stats import gamma
 
 def data_timecourse(data_fname, coord, mask=[], d=4):
@@ -116,7 +117,7 @@ def hrf(times):
     # Scale max to 0.6
     return values / np.max(values) * 0.6
 
-def b_e_calc(Y, X):
+def beta_res_calc(Y, X):
     """ Return beta hat and residuals
     Parameters
     ----------
@@ -126,13 +127,13 @@ def b_e_calc(Y, X):
     Returns
     -------
     B : array, beta hat values with size of (number of X columns, number of Y columns)
-    e : array, residuals with size of (number of TRs, number of Y columns)
+    res : array, residuals with size of (number of TRs, number of Y columns)
     """
     # calculate beta hat values
     B = npl.pinv(X).dot(Y)
     # calculate residuals
-    e = Y - X.dot(B)
-    return B, e
+    res = Y - X.dot(B)
+    return B, res
 
 def create_contrast_img(B, C, vol_shape):
     """ Return Contrast image of B map
@@ -144,11 +145,48 @@ def create_contrast_img(B, C, vol_shape):
 
     Returns
     -------
-    Bmap : contrast image of beta values
+    Cmap : contrast image of beta values
     """
     # ensure contrast is array
     C = np.array(C)
-    # create Bmap
-    Bmap = C.T.dot(B)
+    # create contrast map
+    Cmap = C.T.dot(B)
     # return reshaped image
-    return np.reshape(Bmap, (vol_shape))
+    return np.reshape(Cmap, (vol_shape))
+
+def compute_tstats(C, X, B, res, vol_shape):
+    """ Computes t statistics and p-values and returns 3D t_map and p_map
+    Parameters
+    ----------
+    C : array
+        contrast vector to test beta values
+    B : array
+        beta hat values calculated from beta_res_calc
+    X : array
+        design matrix used in GLM
+    res : array
+        residuals calculated from beta_res_calc
+    vol_shape : numpy array
+        shape of output volume to reshape t and p values
+
+    Returns
+    -------
+    t_map : array shape (vol_shape)
+        t statistics for each voxel
+    p_map : array shape (vol_shape)
+        two-tailed probability value for each t statistic
+    """
+    # calculate df_error
+    n = X.shape[0]
+    x_rank = npl.matrix_rank(X)
+    df_error = n - x_rank
+    # calculate sigma_2 and c_b_cov
+    sigma_2 = np.sum(res ** 2) / df_error
+    c_b_cov = C.T.dot(npl.pinv(X.T.dot(X))).dot(C)
+    # calculate t statistics
+    t = C.T.dot(B) / np.sqrt(sigma_2 * c_b_cov)
+    # calculate p values
+    t_dist = sst.t(df_error)
+    p = (1 - t_dist.cdf(np.abs(t))) * 2
+    # reshape t and p values to volume shape
+    return np.reshape(t, vol_shape), np.reshape(p, vol_shape)
