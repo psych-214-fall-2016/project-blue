@@ -90,7 +90,7 @@ def test_event_timecourse():
 
 def test_hrf():
     # create random tr and set of times
-    tr = np.random.randint(4) + np.random.rand(1)
+    tr = np.random.randint(1,4) + np.random.rand(1)
     times = np.arange(0, np.random.randint(100), tr)
     # create peak values and undershoot values
     peak_values = gamma.pdf(times, 6)
@@ -139,8 +139,8 @@ def test_compute_tstats():
     vol_shape = np.random.randint(1, 100, size=(3,))
     # create random data and design matrix
     n = np.random.randint(1,100)
-    Y = np.random.randint(100, size=(n, np.prod(vol_shape)))
-    X = np.random.randint(np.random.randint(100), size=(n, 2))
+    Y = np.random.randint(1, 100, size=(n, np.prod(vol_shape)))
+    X = np.random.randint(np.random.randint(1,100), size=(n, 2))
     # calculate beta and residuals
     B = npl.pinv(X).dot(Y)
     res = Y - X.dot(B)
