@@ -50,11 +50,11 @@ def test_data_timecourse():
 
 def test_create_design_matrix():
     # create random number trs, tr, and dummy frames
-    n_tr = np.random.randint(100)
-    tr = np.random.randint(4) + np.random.rand(1)
+    n_tr = np.random.randint(1, 100)
+    tr = np.random.randint(1, 4) + np.random.rand(1)
     d_n = np.random.randint(n_tr)
     # create random timecourse of 0s and 1s with random n of columns
-    col_n = np.random.randint(10)
+    col_n = np.random.randint(1, 10)
     t_c = np.random.randint(2,size=(n_tr, col_n))
     # create design matrix manually
     des0 = np.ones((n_tr - d_n, t_c.shape[1]+1))
@@ -69,8 +69,24 @@ def test_create_design_matrix():
     assert np.allclose(des0, des1, rtol=1e-4)
 
 def test_event_timecourse():
-    ##################
-    assert True
+    # set test_events file name, condition_list, tr, and n_tr
+    events_file = pjoin(MY_DIR, 'test_events.tsv')
+    condition_list = ['hit', 'false_alarm', 'omiss', 'cor_rejec']
+    tr = 2
+    n_tr = 267
+    # get test events and initialize timecourse
+    task = np.genfromtxt(events_file, dtype='str')[1:, :]
+    task[:, :2] = task[:, :2].astype(np.float) / tr
+    tc0 = np.zeros((n_tr, len(condition_list)))
+    # for each onset, set onset:onset+duration to 1
+    for onset, duration, condition in task:
+        onset = int(round(onset.astype(np.float)))
+        duration = int(round(duration.astype(np.float)))
+        tc0[onset:onset + duration, condition_list.index(condition)] = 1
+    # get timecourse from function
+    tc1 = event_timecourse(events_file, condition_list, tr, n_tr)
+    # assert same timecourse
+    assert np.allclose(tc0, tc1)
 
 def test_hrf():
     # create random tr and set of times
@@ -107,7 +123,7 @@ def test_beta_res_calc():
 
 def test_create_contrast_img():
     # create random beta maps
-    vol_shape = np.random.randint(100, size=(3,))
+    vol_shape = np.random.randint(1, 100, size=(3,))
     B = np.random.randn(2, np.prod(vol_shape))
     C = np.array([0, 1])
     # calculate contrast map
@@ -120,7 +136,7 @@ def test_create_contrast_img():
 
 def test_compute_tstats():
     # create random vol shape and beta values
-    vol_shape = np.random.randint(100, size=(3,))
+    vol_shape = np.random.randint(1, 100, size=(3,))
     # create random data and design matrix
     n = np.random.randint(1,100)
     Y = np.random.randint(100, size=(n, np.prod(vol_shape)))
