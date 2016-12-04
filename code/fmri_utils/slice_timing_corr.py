@@ -8,8 +8,8 @@ INPUTS:
 3) other scanner info?
 
 OUTPUTS:
-1) Resliced, time corrected data
-2) Corrected time series
+1) new_data: Resliced, time corrected data
+2) new_series: Corrected time series
 """
 
 import numpy as np
