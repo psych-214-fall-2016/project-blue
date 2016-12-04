@@ -17,7 +17,10 @@ from scipy.optimize import fmin_powell
 import fmri_utils
 import fmri_utils.slice_timing_corr
 
-# data_folder = args[0]
+# In order to run this wrapper, you must provide the directory of the local .nii data.
+# It will take in the location with something like: data_folder = args[0]
+# For the purposes of writing and testing, I have hard coded data_folder to
+# the location on my personal computer on the following line.
 data_folder = '/Users/kayserlab/Documents/Psych214/data'
 subject_folders = os.listdir(data_folder)
 
@@ -28,7 +31,7 @@ for subject_folder in subject_folders:
     subject_files = os.listdir(subject_dir)
     nii_files = [s for s in subject_files if s.endswith(".nii.gz")]
 
-    # Next line will use only the first run from subject for
+    # Next line will use only the first run from subject for model_signal.py as instructed in outline_for_wrapper
     # nii_files = [s for s in nii_files if re.search("run-01", s) is not None]
     for nii_file in nii_files:
         nii_filepath = os.path.join(subject_dir, nii_file)
@@ -56,3 +59,11 @@ for subject_folder in subject_folders:
         time_correct_data, time_correct_series = fmri_utils.slice_timing_corr.slice_timing_corr(data, TR)
 
         # Apply motion correction from motion_correction.py
+        # Clarifications need to be made for motion_correction to run--
+        # For example, cost_function(matvec) calls nib.affines.to_matvec
+        # but never uses the resultant outputs mat or vec in its return of
+        # variable '-correl'. The rest of this wrapper code will use a dummy
+        # variable "motion_correct_data" that assumes the output of motion_correction.py,
+        # although this is currently not a real output.
+
+        
