@@ -1,5 +1,5 @@
 """ Wrapper for running code
-Calls individual scripts for analysis.
+Calls individual modules for analysis.
 inputs:
 data_folder = subject data location
 """
@@ -9,9 +9,13 @@ import os
 import re
 import numpy as np
 import nibabel as nib
+import numpy.linalg as npl
 import matplotlib.pyplot as plt
+from scipy.ndimage import affine_transform
+from scipy.optimize import fmin_powell
 
 import fmri_utils
+import fmri_utils.slice_timing_corr
 
 # data_folder = args[0]
 data_folder = '/Users/kayserlab/Documents/Psych214/data'
@@ -41,11 +45,14 @@ for subject_folder in subject_folders:
 
         # Add outliers found from IQR means and those from IQR std devs
         all_outliers = mean_outliers + std_outliers
-        all_inliers = [x for x in range(data.shape[-1]) if x not in all_outliers]
+        all_inliers = [x for x in range(raw_data.shape[-1]) if x not in all_outliers]
 
         # Begin using data without the volumes that were identified as outliers
         data = raw_data[...,all_inliers]
 
         # Begin slice-timing correction found in slice_timing_corr.py
-        # TR = 2, found in
-        time_correct_data, time_correct_series = fmri_utils.slice_timing_corr.slice_timing_corr(data, )
+        # TR = 2, found in 'task-visualimageryfalsememory_bold.json'
+        TR = 2
+        time_correct_data, time_correct_series = fmri_utils.slice_timing_corr.slice_timing_corr(data, TR)
+
+        # Apply motion correction from motion_correction.py
