@@ -32,8 +32,8 @@ def test_mean_detector():
     # get standard deviations and outliers from std_detector
     vol_mean1, outliers1 = mean_detector(data)
     # assert same
-    assert np.allclose(vol_mean0, vol_mean1)
-    assert np.allclose(outliers0, outliers1)
+    assert np.allclose(vol_mean0, vol_mean1, rtol=1e-4)
+    assert np.allclose(outliers0, outliers1, rtol=1e-4)
 
 def test_std_detector():
     # create data of ones and outliers to set large standard deviations
@@ -50,8 +50,8 @@ def test_std_detector():
     # get standard deviations and outliers from std_detector
     vol_std1, outliers1 = std_detector(data)
     # assert same
-    assert np.allclose(vol_std0, vol_std1)
-    assert np.allclose(outliers0, outliers1)
+    assert np.allclose(vol_std0, vol_std1, rtol=1e-4)
+    assert np.allclose(outliers0, outliers1, rtol=1e-4)
 
 def test_iqr_detector():
     # create random data and IQR factor
@@ -68,5 +68,5 @@ def test_iqr_detector():
     # find outliers using iqr_detector
     outlier_tf1, outlier_i1 = iqr_detector(data, iqr_factor)
     # asser same
-    assert np.allclose(outlier_tf0, outlier_tf1)
-    assert np.allclose(outlier_i0, outlier_i1)
+    assert np.allclose(outlier_tf0, outlier_tf1, rtol=1e-4)
+    assert np.allclose(outlier_i0, outlier_i1, rtol=1e-4)

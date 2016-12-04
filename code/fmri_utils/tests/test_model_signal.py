@@ -86,7 +86,7 @@ def test_event_timecourse():
     # get timecourse from function
     tc1 = event_timecourse(events_file, condition_list, tr, n_tr)
     # assert same timecourse
-    assert np.allclose(tc0, tc1)
+    assert np.allclose(tc0, tc1, rtol=1e-4)
 
 def test_hrf():
     # create random tr and set of times
@@ -101,7 +101,7 @@ def test_hrf():
     # get values from hrf
     values1 = hrf(times)
     # assert same values
-    assert np.allclose(values0, values1)
+    assert np.allclose(values0, values1, rtol=1e-4)
 
 def test_beta_res_calc():
     # get random data
@@ -118,8 +118,8 @@ def test_beta_res_calc():
     # calculate residuals
     e0 = Y1 - X1.dot(B0)
     # assert same betas and residuals
-    assert np.allclose(B0, B1)
-    assert np.allclose(e0, e1)
+    assert np.allclose(B0, B1, rtol=1e-4)
+    assert np.allclose(e0, e1, rtol=1e-4)
 
 def test_create_contrast_img():
     # create random beta maps
@@ -132,7 +132,7 @@ def test_create_contrast_img():
     # get cmap from create_contrast_img
     Cmap1 = create_contrast_img(B, C, vol_shape)
     # assert same maps
-    assert np.allclose(Cmap0, Cmap1)
+    assert np.allclose(Cmap0, Cmap1, rtol=1e-4)
 
 def test_compute_tstats():
     # create random vol shape and beta values
@@ -161,5 +161,5 @@ def test_compute_tstats():
     # get tmap and pmap from compute_tstats
     tmap1, pmap1 = compute_tstats(C, X, B, res, vol_shape)
     # assert same tmaps and pmaps
-    assert np.allclose(tmap0, tmap1)
-    assert np.allclose(pmap0, pmap1)
+    assert np.allclose(tmap0, tmap1, rtol=1e-4)
+    assert np.allclose(pmap0, pmap1, rtol=1e-4)
