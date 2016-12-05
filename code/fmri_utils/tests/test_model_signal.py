@@ -135,19 +135,17 @@ def test_create_contrast_img():
     assert np.allclose(Cmap0, Cmap1, rtol=1e-4)
 
 def test_compute_tstats():
-    # create vol shape
-    vol_shape = [64,64,30]
+    # create random vol shape and beta values
+    vol_shape = np.random.randint(1, 100, size=(3,))
     # create random data and design matrix
-    n = 60
+    n = np.random.randint(1,100)
     Y = np.random.randint(1, 100, size=(n, np.prod(vol_shape)))
-    X = np.ones((n, 2))
-    X[:int(n/2), 0] = 0
-    X[int(n/2):, 1] = 0
+    X = np.random.randint(np.random.randint(1,100), size=(n, 2))
     # calculate beta and residuals
     B = npl.pinv(X).dot(Y)
     res = Y - X.dot(B)
     # create contrast vector
-    C = np.array([1, -1])
+    C = np.array([0, 1])
     # calculate df_error and sigma_2
     df_error = n - npl.matrix_rank(X)
     sigma_2 = np.sum(res ** 2) / df_error
