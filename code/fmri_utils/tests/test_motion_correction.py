@@ -1,6 +1,6 @@
-""" Test script for model_signal module
+""" Test script for motion_correction module
 
-Test with ``py.test test_model_signal.py``.
+Test with ``py.test test_motion_correction.py``.
 """
 
 from os.path import dirname, join as pjoin
