@@ -1,3 +1,8 @@
+""" Test script for slice_timing_corr module
+
+Test with ``py.test test_slice_timing_corr.py``.
+"""
+
 import numpy as np
 from fmri_utils import slice_timing_corr
 
