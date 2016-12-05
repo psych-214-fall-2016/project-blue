@@ -1,131 +1,179 @@
-""" Functions for motion correcton and spatial normalization
-    between individuals or individual to template.
-
+""" Functions for motion correcton.
 """
+import sys
 import numpy as np
 import numpy.linalg as npl
 import nibabel as nib
-import matplotlib.pyplot as plt
 from scipy.ndimage import affine_transform
 from scipy.optimize import fmin_powell
 
-#: gray colormap and nearest neighbor interpolation by default
-plt.rcParams['image.cmap'] = 'gray'
-plt.rcParams['image.interpolation'] = 'nearest'
+def create_rotmat(rotations):
+    """ create rotation matrix from vector rotations
 
-project_path = '../../'
-data_path = project_path+'data/sub_data/'
-
-#We have 26 dataset
-#change here to get your subject !
-# subject_list = [str(i) for i in range(1,27)]
-image_path = data_path + 'func/sub-01_task-visualimageryfalsememory_run-01_bold.nii'
-
-
-def load_data():
-    """ Load the volume data for finding the optimized transformation matrix.
-    """
-
-    #load a 4 D data for individual subject
-    img = nib.load(image_path)
-    data = img.get_data()
-
-    #we should just collect the data after the outlier detection
-    #1 will be replace with the outliers
-    fixed_data = data[...,1:]
-
-    vol1 = data[..., 0]
-
-    #vol2 can be any volume other than the first volume we want to align to
-    vol2 = data[..., 1]
-
-    return vol1, vol2
-
-def cost_function(matvec):
-    """ Give cost function value at each affine transformation.
-    """
-
-    #mat is the rotation and scaling, vec is the translation
-    mat, vec = nib.affines.to_matvec(matvec)
-
-    vol1, vol2 = load_data()
-    # order=1 for linear interpolation
-    #The output_shape is supposed to be same
-    vol1_transformed = affine_transform(vol1, mat, vec, order=1)
-
-    """ Negative correlation between the two volumes, flattened to 1D """
-    correl = np.corrcoef(vol1.ravel(), vol2.ravel())[0, 1]
-    return -correl
-
-def transformation_rigid_matrix(p):
-    """transformation_rigid_matrix returns a matrix defining a rigid-body transformation.
-    The transformation can be a translation, rotation, scaling.
-    (well scalings are not rigid, but it's customary to include
-    them in the model) transformation given a vector of parameters (p).
-    By default, the transformations are applied in the following order (i.e.,
-    the opposite to which they are specified):
-    1) scale (zoom)
-    2) rotation - yaw, roll & pitch
-    3) translation
     Parameters
     ----------
-    p: array_like of length 9
-        vector of parameters
-        p(0)  - x translation
-        p(1)  - y translation
-        p(2)  - z translation
-        p(3)  - x rotation about - {pitch} (radians)
-        p(4)  - y rotation about - {roll}  (radians)
-        p(5)  - z rotation about - {yaw}   (radians)
-        p(6)  - x scaling
-        p(7)  - y scaling
-        p(8)  - z scaling
+    rotations : 1D array
+        rotation vectors (in radians)
+
     Returns
     -------
-    A: 2D array of shape (4, 4)
-        orthogonal transformation matrix
+    rot_mat : 2D array
+        4 x 4 rotation matrix concatenated from x, y, z rotations
     """
+    # set cos and sin of theta
+    cos_t = [np.cos(x) for x in rotations]
+    sin_t = [np.sin(x) for x in rotations]
+    # x matrix
+    rot_x = np.array([[1, 0, 0],
+                      [0, cos_t[0], -sin_t[0]],
+                      [0, sin_t[0], cos_t[0]]])
+    # y matrix
+    rot_y = np.array([[cos_t[1], 0, sin_t[1]],
+                      [0, 1, 0],
+                      [-sin_t[1], 0, cos_t[1]]])
+    # z matrix
+    rot_z = np.array([[cos_t[2], -sin_t[2], 0],
+                      [sin_t[2], cos_t[2], 0],
+                      [0, 0, 1]])
+    # return concatenated rotations
+    return rot_z.dot(rot_y).dot(rot_x)
 
-    # get initial parameters
-    q = np.zeros(9) + 2
-    q[6:9] = 1.
-     # fill-up up p to length 9, if p is too short
-    p = np.hstack((p, q[len(p):12]))
+def transformation_matrix(params):
+    """ transformation_matrix returns a matrix defining a transformation.
+    The transformation can be a translation, rotation, zooms.
+    transformation given a vector of parameters (params).
 
-    # translation
-    T = np.eye(4)
-    T[:3, -1] = p[:3]
+    Parameters
+    ----------
+    params: 1D array
+        vector of parameters
+        params[0]  - x translation
+        params[1]  - y translation
+        params[2]  - z translation
+        params[3]  - x rotation about - {pitch} (radians)
+        params[4]  - y rotation about - {roll}  (radians)
+        params[5]  - z rotation about - {yaw}   (radians)
+        params[6]  - x zooms
+        params[7]  - y zooms
+        params[8]  - z zooms
 
-    # yaw
-    R1 = np.eye(4)
-    R1[1, 1:3] = np.cos(p[3]), np.sin(p[3])
-    R1[2, 1:3] = -np.sin(p[3]), np.cos(p[3])
+    Returns
+    -------
+    affine: 2D array
+        4 x 4 transformation matrix
+    """
+    # get translations
+    vec = params[0:3]
+    # get rotations
+    rot = params[3:6]
+    # get zooms
+    zooms = params[6:9]
+    # create zoom matrix
+    zoom_mat = np.diag(zooms)
+    # create rotation matrix
+    rot_mat = create_rotmat(rot)
+    # concat zoom and rot matrices
+    M = zoom_mat.dot(rot_mat)
+    # combine into affine
+    return nib.affines.from_matvec(M, vec)
 
-    # roll
-    R2 = np.eye(4)
-    R2[0, [0, 2]] = np.cos(p[4]), np.sin(p[4])
-    R2[2, [0, 2]] = -np.sin(p[4]), np.cos(p[4])
+def apply_transform(vol, ref, params):
+    """ Apply transformation in params to vol with output_shape ref
 
-    # pitch
-    R3 = np.eye(4)
-    R3[0, 0:2] = np.cos(p[5]), np.sin(p[5])
-    R3[1, 0:2] = -np.sin(p[5]), np.cos(p[5])
+    Parameters
+    ----------
+    vol : 3D array
+        volume to which to apply transformation
+    ref : 3D array
+        volume to use as output_shape during affine_transform
+    params : 1D array
+        vectors of translation, rotation, and zoom to apply to vol
 
-    # rotation
-    R = np.dot(R1, np.dot(R2, R3))
+    Returns
+    -------
+    resampled : 3D array
+        resampled vol after applying transforamtion in params
+    """
+    # create affine from params
+    P = transformation_matrix(params)
+    # get template affine
+    ref_vox2mm = ref.affine
+    # get inverse subject affine
+    mm2vol_vox = npl.inv(vol.affine)
+    # concate affines
+    Q = mm2vol_vox.dot(P).dot(ref_vox2mm)
+    # get mat and vec from Q
+    mat, vec = nib.affines.to_matvec(Q)
+    # apply affine transform
+    return affine_transform(vol, mat, vec, order=1, output_shape=ref.shape)
 
-    # zoom & scaling
-    Z = np.eye(4)
-    np.fill_diagonal(Z[0:3, 0:3], p[6:9])
+def cost_function(params, vol, ref):
+    """ cost function for each affine transformation.
 
-    # scaling
-    S = np.eye(4)
-    S[0, 1:3] = p[9:11]
-    S[1, 2] = p[11]
+    Parameters
+    ----------
+    params : 1D array
+        parameters for translation, rotation, and zooms
+    vol : 3D array
+        volume to move to align with ref
+    ref : 3D array
+        volume to which vol is aligned
+    Returns
+    -------
+    correl : number
+        negative correlation between the two volumes (which is
+        lower when alignment is better)
+    """
+    # apply affine transformation on vol
+    vol_resampled = apply_transform(vol, ref, params)
+    # return negative correlation
+    return -np.corrcoef(vol_resampled.ravel(), ref.ravel())[0, 1]
 
-    # compute the complete affine transformation
-    M = np.dot(T, np.dot(R, Z))
+def my_callback(params):
+    """ Callback for fmin_powell to display current params
+    """
+    print("Trying parameters " + str(params))
 
-    best_params = fmin_powell(cost_function, [0, 0, 0, 0, 0, 0, 1, 1, 1], callback=my_callback)
+def optimize_params(data_img, ref_img, ref_idx=0):
+    """ Optimize alignment params for each volume in data
 
-    return best_params
+    Parameters
+    ----------
+    data_img : nibabel image
+        data with volumes to align with ref
+    ref_img : nibabel image
+        volume to be aligned with data volumes
+    ref_idx : int
+        index of ref_img data to use as reference volume
+
+    Returns
+    -------
+    mc_data : 4D array
+        motion corrected data following alignment with ref
+    mc_params : 2D array
+        motion params used to align each volume in data with ref
+    """
+    # get data from data_img and ref_img
+    data = data_img.get_data()
+    ref = ref_img.get_data()
+    if len(data.shape) < 4:
+        data = np.reshape(data, data.shape + (1,))
+    if len(ref.shape) == 4:
+        ref = ref[...,ref_idx]
+    # set affines to data and ref
+    data.affine = data_img.affine
+    ref.affine = ref_img.affine
+    # init mc_data and mc_params
+    mc_data = np.zeros(ref.shape[:3] + (data.shape[-1],))
+    mc_params = np.zeros((data.shape[-1], 9))
+    # for each volume in data
+    for i in range(data.shape[-1]):
+        # set vol data [...,i] and affine
+        vol = data[...,i]
+        vol.affine = data.affine
+        # run fmin_powell with data[..., i] and ref
+        mc_params[i,:] = fmin_powell(cost_function, [0, 0, 0, 0, 0, 0, 1, 1, 1],
+            args=(vol, ref), callback=my_callback)
+        # apply transform
+        mc_data[...,i] = apply_transform(vol, ref, mc_params[i])
+    return mc_data, mc_params
