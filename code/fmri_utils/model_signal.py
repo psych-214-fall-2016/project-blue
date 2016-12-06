@@ -1,3 +1,6 @@
+""" Model Signal module for analyzing fMRI data
+"""
+
 # imports
 import numpy as np
 import numpy.linalg as npl
@@ -5,14 +8,13 @@ import nibabel as nib
 import scipy.stats as sst
 from scipy.stats import gamma
 
-def data_timecourse(data_fname, coord, mask=[], d=4):
+def data_timecourse(data_fname, coord, mask=[]):
     """ return data time course for coordinate or all voxels
     Parameters
     ----------
     data_fname : str, a data filename to return timecourse
     coord : array of coordinates or empty array to return all timecourses
     mask : array of voxels to include in analysis [default is all voxels]
-    d : number of dummy trs to remove [optional; default = 4]
 
     Returns
     -------
@@ -25,10 +27,8 @@ def data_timecourse(data_fname, coord, mask=[], d=4):
     img = nib.load(data_fname)
     data = img.get_data()
     # get n_vols and vol_shape
-    n_vols = data.shape[-1] - d
+    n_vols = data.shape[-1]
     vol_shape = data.shape[:-1]
-    # remove dummy frames
-    data = data[..., d:]
     # return time course for mask
     if len(mask) > 0:
         return data[mask].T
@@ -38,21 +38,24 @@ def data_timecourse(data_fname, coord, mask=[], d=4):
     else: # return all voxels
         return np.reshape(data, (np.prod(vol_shape), n_vols)).T
 
-def create_design_matrix(time_course, tr, n_tr, d=4):
+def create_design_matrix(time_course, tr, n_tr, outliers=range(0,4)):
     """ return design matrix using event file
     Parameters
     ----------
     time_course : event time_course returned from event_timecourse function
     tr : number, repetition time in seconds
     n_tr : number, number of TRs
-    d : number of dummy trs to remove [optional; default = 4]
+    outliers: indices of trs to remove [optional; default = range(0,4)]
 
     Returns
     -------
-    X : array, design matrix (including column of 1s last)
+    X : array, design matrix with convolved time_course columns followed by
+        outlier regressor columns, and a ones column
     """
+    # get n_outliers
+    n_outliers = len(outliers)
     # create design matrix
-    X = np.ones((n_tr - d, time_course.shape[1] + 1))
+    X = np.ones((n_tr, time_course.shape[1]))
     # create tr_times
     tr_times = np.arange(0, 30, tr)
     # get hrf_at_trs
@@ -62,9 +65,13 @@ def create_design_matrix(time_course, tr, n_tr, d=4):
     for i in range(time_course.shape[1]):
         # convolve with hrf
         convolved = np.convolve(time_course[:,i], hrf_at_trs)
-        convolved = convolved[d:-n_to_remove]
-        # set convolved to X
-        X[:,i] = convolved
+        X[:,i] = convolved[:-n_to_remove]
+    # add outlier columns
+    R = np.zeros((n_tr, n_outliers))
+    for i in range(n_outliers):
+        R[outliers[i],i] = 1
+    # concatenate X, R, and ones column
+    X = np.column_stack([X, R, np.ones((n_tr,))])
     return X
 
 def event_timecourse(task_fname, condition_list, tr, n_tr):
