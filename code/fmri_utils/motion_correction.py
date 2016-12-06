@@ -1,5 +1,7 @@
 """ Functions for motion correcton.
 """
+
+# imports
 import sys
 import numpy as np
 import numpy.linalg as npl
@@ -77,14 +79,14 @@ def transformation_matrix(params):
     # combine into affine
     return nib.affines.from_matvec(M, vec)
 
-def apply_transform(vol, ref, params):
+def apply_transform(vol_img, ref_img, params):
     """ Apply transformation in params to vol with output_shape ref
 
     Parameters
     ----------
-    vol : 3D array
+    vol_img : nibabel image
         volume to which to apply transformation
-    ref : 3D array
+    ref_img : nibabel image
         volume to use as output_shape during affine_transform
     params : 1D array
         vectors of translation, rotation, and zoom to apply to vol
@@ -94,12 +96,15 @@ def apply_transform(vol, ref, params):
     resampled : 3D array
         resampled vol after applying transforamtion in params
     """
+    # get vol and ref from images
+    vol = vol_img.get_data()
+    ref = ref_img.get_data()
     # create affine from params
     P = transformation_matrix(params)
     # get template affine
-    ref_vox2mm = ref.affine
+    ref_vox2mm = ref_img.affine
     # get inverse subject affine
-    mm2vol_vox = npl.inv(vol.affine)
+    mm2vol_vox = npl.inv(vol_img.affine)
     # concate affines
     Q = mm2vol_vox.dot(P).dot(ref_vox2mm)
     # get mat and vec from Q
@@ -107,16 +112,16 @@ def apply_transform(vol, ref, params):
     # apply affine transform
     return affine_transform(vol, mat, vec, order=1, output_shape=ref.shape)
 
-def cost_function(params, vol, ref):
+def cost_function(params, vol_img, ref_img):
     """ cost function for each affine transformation.
 
     Parameters
     ----------
     params : 1D array
         parameters for translation, rotation, and zooms
-    vol : 3D array
+    vol_img : nibabel image
         volume to move to align with ref
-    ref : 3D array
+    ref_img : nibabel image
         volume to which vol is aligned
     Returns
     -------
@@ -125,7 +130,9 @@ def cost_function(params, vol, ref):
         lower when alignment is better)
     """
     # apply affine transformation on vol
-    vol_resampled = apply_transform(vol, ref, params)
+    vol_resampled = apply_transform(vol_img, ref_img, params)
+    # get ref data
+    ref = ref_img.get_data()
     # return negative correlation
     return -np.corrcoef(vol_resampled.ravel(), ref.ravel())[0, 1]
 
@@ -160,20 +167,19 @@ def optimize_params(data_img, ref_img, ref_idx=0):
         data = np.reshape(data, data.shape + (1,))
     if len(ref.shape) == 4:
         ref = ref[...,ref_idx]
-    # set affines to data and ref
-    data.affine = data_img.affine
-    ref.affine = ref_img.affine
+    # create set ref_img
+    ref_img = nib.Nifti1Image(ref, ref_img.affine)
     # init mc_data and mc_params
     mc_data = np.zeros(ref.shape[:3] + (data.shape[-1],))
     mc_params = np.zeros((data.shape[-1], 9))
     # for each volume in data
     for i in range(data.shape[-1]):
-        # set vol data [...,i] and affine
+        # set vol_img with data[...,i] and affine
         vol = data[...,i]
-        vol.affine = data.affine
+        vol_img = nib.Nifti1Image(vol, data_img.affine)
         # run fmin_powell with data[..., i] and ref
         mc_params[i,:] = fmin_powell(cost_function, [0, 0, 0, 0, 0, 0, 1, 1, 1],
-            args=(vol, ref), callback=my_callback)
+            args=(vol_img, ref_img), callback=my_callback)
         # apply transform
-        mc_data[...,i] = apply_transform(vol, ref, mc_params[i])
+        mc_data[...,i] = apply_transform(vol_img, ref_img, mc_params[i])
     return mc_data, mc_params
