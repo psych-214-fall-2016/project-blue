@@ -31,3 +31,19 @@ Install pytest:
 Run the tests:
 
     py.test code
+
+## Download data
+
+All data and the experiment overview can be found here: https://openfmri.org/dataset/ds000203/
+
+Only download data from latest revision, in this case, Revision: 1.0.1 Date Set: Oct. 17, 2016.
+
+Subject data is found in link "Data for All Subjects (1-26)" with filename 'ds000203_R1.0.1_data.zip'.
+
+The directory you choose to save the data in will be used to run the wrapper code 'wrapper.py', which executes each step of the analysis sequence. Make note of this location on your local drive.
+
+## Run wrapper
+
+To run wrapper, open Python (or ipython) and execute at command line as:
+
+    python wrapper.py 'your-directory-of-downloaded-data'
