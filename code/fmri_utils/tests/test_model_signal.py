@@ -24,47 +24,51 @@ def test_data_timecourse():
     # get data
     img = nib.load(EXAMPLE_FULLPATH)
     data = img.get_data()
-    # get random coordinates and number of dummy frames
+    # get random coordinates
     coord = [np.random.randint(data.shape[i]) for i in range(3)]
-    d_n = np.random.randint(data.shape[-1])
-    # remove dummy frames
-    data = data[..., d_n:]
     # get timecourse from coord manually
     t_c0 = data[coord[0],coord[1],coord[2]]
     # get timecourse from data_timecourse
-    t_c1 = data_timecourse(EXAMPLE_FULLPATH, coord, [], d_n)
+    t_c1 = data_timecourse(EXAMPLE_FULLPATH, coord, [])
     # assert same for coordinates
     assert np.allclose(t_c0, t_c1, rtol=1e-4)
     # create random mask
     mask = np.random.randint(2,size=data.shape[:-1]).astype(bool)
     # get timecourse for mask
     t_c2 = data[mask].T
-    t_c3 = data_timecourse(EXAMPLE_FULLPATH, [], mask, d_n)
+    t_c3 = data_timecourse(EXAMPLE_FULLPATH, [], mask)
     # assert same for masks
     assert np.allclose(t_c2, t_c3, rtol=1e-4)
     # get timecourse for all voxels
     t_c4 = np.reshape(data, (np.prod(data.shape[:-1]), data.shape[-1])).T
-    t_c5 = data_timecourse(EXAMPLE_FULLPATH, [], [], d_n)
+    t_c5 = data_timecourse(EXAMPLE_FULLPATH, [], [])
     # assert same for all voxels
     assert np.allclose(t_c4, t_c5, rtol=1e-4)
 
 def test_create_design_matrix():
-    # create random number trs, tr, and dummy frames
+    # create random number trs, tr, and outliers
     n_tr = np.random.randint(1, 100)
     tr = np.random.randint(1, 4) + np.random.rand(1)
-    d_n = np.random.randint(n_tr)
+    outliers = np.sort(np.random.randint(n_tr, size=(10)))
+    n_outliers = len(outliers)
     # create random timecourse of 0s and 1s with random n of columns
     col_n = np.random.randint(1, 10)
     t_c = np.random.randint(2,size=(n_tr, col_n))
     # create design matrix manually
-    des0 = np.ones((n_tr - d_n, t_c.shape[1]+1))
+    des0 = np.ones((n_tr, t_c.shape[1]))
     hrf_at_trs = hrf(np.arange(0, 30, tr))
     n_to_remove = len(hrf_at_trs) - 1
     for i in range(t_c.shape[1]):
         convolved = np.convolve(t_c[:,i], hrf_at_trs)
-        des0[:,i] = convolved[d_n:-n_to_remove]
+        des0[:,i] = convolved[:-n_to_remove]
+    # create R matrix
+    R = np.zeros((n_tr, n_outliers))
+    for i in range(n_outliers):
+        R[outliers[i],i] = 1
+    # stack des0, R, ones
+    des0 = np.column_stack([des0, R, np.ones((n_tr,))])
     # create design matrix from module
-    des1 = create_design_matrix(t_c, tr, n_tr, d_n)
+    des1 = create_design_matrix(t_c, tr, n_tr, outliers)
     # assert same
     assert np.allclose(des0, des1, rtol=1e-4)
 
