@@ -42,8 +42,12 @@ Subject data is found in link "Data for All Subjects (1-26)" with filename 'ds00
 
 The directory you choose to save the data in will be used to run the wrapper code 'wrapper.py', which executes each step of the analysis sequence. Make note of this location on your local drive.
 
-## Run wrapper
+## Run analysis
 
-To run wrapper, open Python (or ipython) and execute at command line as:
+To run the analysis, first download the project-blue repository and add its download location to your python path. Open ipython (or python) and import the fmri_utils module as so:
 
-    python wrapper.py 'your-directory-of-downloaded-data'
+    from fmri_utils.wrapper import run_analysis
+
+Then call the run_analysis function as so:
+
+    run_analysis('directory_of_openfmri_data_you_downloaded')
