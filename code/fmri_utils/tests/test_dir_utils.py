@@ -52,8 +52,8 @@ def test_validate_hash():
     lines = fobj.readlines()
     fobj.close()
     split_lines = [line.split() for line in lines]
-    # check hashes are same as file hashes
-    for line in split_lines:
+    # check hashes are same as file hashes (except last line)
+    for line in split_lines[:-1]:
         fhash = file_hash(MY_DIR + '/' + line[1])
         assert fhash == line[0]
     # run validate_data

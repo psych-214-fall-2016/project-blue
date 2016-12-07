@@ -140,6 +140,8 @@ def validate_data(data_directory):
         If hash value for any file is different from hash value recorded in
         data_directory/data_hashes.txt
     """
+    # initialize valid as true
+    valid = True
     # Read lines from ``data_hashes.txt`` file.
     fobj = open(data_directory + '/data_hashes.txt', 'rt')
     lines = fobj.readlines()
@@ -152,6 +154,8 @@ def validate_data(data_directory):
         # If hash for filename is not the same as the one in the file,
         # raise ValueError
         if fhash != line[0]:
-            raise ValueError('Hash mismatch in file: /' + line[1])
-    # print validated
-    print('Files validated.')
+            print('Hash mismatch in file: /' + line[1])
+            valid = False
+    # if all valid, print validated
+    if valid:
+        print('Files validated')
