@@ -45,16 +45,25 @@ def test_file_hash():
     assert hash0 == hash1
 
 def test_validate_hash():
-    # get data_hashes.txt
+    # get data_hashes.txt and test files
     filename = os.path.join(MY_DIR, 'data_hashes.txt')
-    # get hashes and files
-    fobj = open(filename, 'rt')
-    lines = fobj.readlines()
+    files = ['test_events.tsv','test_task.json']
+    # get hashes for files
+    hashes = list()
+    for f in files:
+        hashes.append(file_hash(MY_DIR + '/' + f))
+    # write hashes and files to data_hashes
+    fobj = open(filename, 'wt')
+    for x in range(len(files)):
+        fobj.write(hashes[x] + ' ' + files[x] + '\n')
+    # include incorrect hash/file pair
+    fobj.write('0 test_dir_utils.py')
     fobj.close()
-    split_lines = [line.split() for line in lines]
-    # check hashes are same as file hashes (except last line)
-    for line in split_lines[:-1]:
-        fhash = file_hash(MY_DIR + '/' + line[1])
-        assert fhash == line[0]
-    # run validate_data
+    # test validate_data when not all correct
+    validate_data(MY_DIR)
+    fobj = open(filename, 'wt')
+    for x in range(len(files)):
+        fobj.write(hashes[x] + ' ' + files[x] + '\n')
+    fobj.close()
+    # test validate_data with all correct
     validate_data(MY_DIR)
