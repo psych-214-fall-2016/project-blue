@@ -116,10 +116,17 @@ def test_optimize_params():
         args=(vol_img, ref_img))
     # apply mc_params
     mc_data0 = apply_transform(vol_img, ref_img, mc_params0)
-    # add 4th dimension to mc_data0 for comparison purposes
-    mc_data0 = np.reshape(mc_data0, mc_data0.shape + (1,))
     # get motion corrected data and params using optimize_params
-    mc_data1, mc_params1 = optimize_params(vol_img, ref_img)
+    vol_img = nib.Nifti1Image(test_data, test_img.affine)
+    ref_img = nib.Nifti1Image(np.reshape(ref, ref.shape + (1,)), test_img.affine)
+    mc_data1, mc_params1 = optimize_params(vol_img, ref_img, 0)
     # assert same data and params
-    assert np.allclose(mc_data0, mc_data1, rtol=1e-4)
-    assert np.allclose(mc_params0, mc_params1, rtol=1e-4)
+    assert np.allclose(mc_data0, mc_data1[...,idx], rtol=1e-4)
+    assert np.allclose(mc_params0, mc_params1[idx,:], rtol=1e-4)
+    # test single image
+    vol_img = nib.Nifti1Image(vol, test_img.affine)
+    ref_img = nib.Nifti1Image(ref, test_img.affine)
+    mc_data2, mc_params2 = optimize_params(vol_img, ref_img)
+    # assert same data and params
+    assert np.allclose(mc_data0, mc_data2[...,0], rtol=1e-4)
+    assert np.allclose(mc_params0, mc_params2, rtol=1e-4)
