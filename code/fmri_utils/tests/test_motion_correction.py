@@ -67,16 +67,16 @@ def test_apply_transform():
     test_img = nib.load(EXAMPLE_FULLPATH)
     test_data = test_img.get_data()
     vol = test_data[...,0]
-    vol.affine = test_img.affine
     ref = test_data[...,1]
-    ref.affine = test_img.affine
+    vol_img = nib.Nifti1Image(vol, test_img.affine)
+    ref_img = nib.Nifti1Image(ref, test_img.affine)
     # concatenate matrices then get mat, vec
-    Q = npl.inv(vol.affine).dot(P).dot(ref.affine)
+    Q = npl.inv(vol_img.affine).dot(P).dot(ref_img.affine)
     mat, vec = nib.affines.to_matvec(Q)
     # apply affine to create resampled data
     resampled0 = affine_transform(vol, mat, vec, order=1, output_shape=ref.shape)
     # get resampled data from apply_transform
-    resampled1 = apply_transform(vol, ref, params)
+    resampled1 = apply_transform(vol_img, ref_img, params)
     # assert same
     assert np.allclose(resampled0, resampled1, rtol=1e-4)
 
@@ -86,16 +86,16 @@ def test_cost_function():
     test_data = test_img.get_data()
     vol = test_data[...,0]
     ref = test_data[...,1]
-    vol.affine = test_img.affine
-    ref.affine = test_img.affine
+    vol_img = nib.Nifti1Image(vol, test_img.affine)
+    ref_img = nib.Nifti1Image(ref, test_img.affine)
     # create random params
     params = np.random.rand(9)
     # apply transformation
-    resampled = apply_transform(vol, ref, params)
+    resampled = apply_transform(vol_img, ref_img, params)
     # get negative correlation
     correl0 = -np.corrcoef(resampled.ravel(), ref.ravel())[0, 1]
     # get negative correlation from cost_function
-    correl1 = cost_function(params, vol, ref)
+    correl1 = cost_function(params, vol_img, ref_img)
     # assert same
     assert np.allclose(correl0, correl1, rtol=1e-4)
 
@@ -109,15 +109,13 @@ def test_optimize_params():
     test_data[...,idx] = affine_transform(test_data[...,idx], np.eye(3), trans, order=1)
     vol = test_data[...,idx]
     ref = test_data[...,0]
-    vol.affine = test_img.affine
-    ref.affine = test_img.affine
-    vol_img = nib.Nifti1Image(vol, vol.affine)
-    ref_img = nib.Nifti1Image(ref, ref.affine)
+    vol_img = nib.Nifti1Image(vol, test_img.affine)
+    ref_img = nib.Nifti1Image(ref, test_img.affine)
     # get motion correction params
     mc_params0 = fmin_powell(cost_function, [0, 0, 0, 0, 0, 0, 1, 1, 1],
-        args=(vol, ref))
+        args=(vol_img, ref_img))
     # apply mc_params
-    mc_data0 = apply_transform(vol, ref, mc_params0)
+    mc_data0 = apply_transform(vol_img, ref_img, mc_params0)
     # add 4th dimension to mc_data0 for comparison purposes
     mc_data0 = np.reshape(mc_data0, mc_data0.shape + (1,))
     # get motion corrected data and params using optimize_params
