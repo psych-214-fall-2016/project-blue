@@ -33,12 +33,15 @@ def run_analysis(data_folder):
     run01_files = fmri_utils.dir_utils.search_directory(data_folder, '.*run-01_bold.nii.gz')
     run02_files = fmri_utils.dir_utils.search_directory(data_folder, '.*run-02_bold.nii.gz')
     all_data_files = fmri_utils.dir_utils.search_directory(data_folder, '.*bold.nii.gz')
+    # 'sub-01_task-visualimageryfalsememory_run-01_bold.nii.gz'
 
     for data_file in all_data_files:
 
         # Load data
         img = nib.load(data_file)
         data = img.get_data()
+
+        # Validate data hashes
 
         # Find outliers as determined in detectors.py
         vol_mean, mean_outlier_arr = fmri_utils.detectors.mean_detector(data)
@@ -53,7 +56,10 @@ def run_analysis(data_folder):
         time_corrected_data, time_corrected_series = fmri_utils.slice_timing_corr.slice_timing_corr(data, TR)
 
         # Apply motion correction from motion_correction.py
-        #motion_corrected_data =
+        # Use middle volume as the reference image
+        reference_vol = int(time_corrected_data.shape[-1]/2)
+        corrected_data = nib.Nifti1Image(time_corrected_data, img.affine)
+        motion_corrected_data, motion_correction_params = fmri_utils.motion_correction.optimize_params(corrected_data, corrected_data, reference_vol)
 
         # Find array of timecourse for voxels; found in model_signal.py
         data_timecourse = fmri_utils.model_signal.data_timecourse(motion_corrected_data, [])
@@ -65,6 +71,6 @@ def run_analysis(data_folder):
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('Please enter the directory of the openfmri data')
-        quit()        
+        quit()
     data_folder = sys.argv[1]
     run_analysis(data_folder)
