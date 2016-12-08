@@ -7,6 +7,7 @@ data_folder = subject data location
 from __future__ import print_function, division
 import os
 import re
+import sys
 import numpy as np
 import nibabel as nib
 import numpy.linalg as npl
@@ -52,9 +53,18 @@ def run_analysis(data_folder):
         time_corrected_data, time_corrected_series = fmri_utils.slice_timing_corr.slice_timing_corr(data, TR)
 
         # Apply motion correction from motion_correction.py
+        #motion_corrected_data =
 
         # Find array of timecourse for voxels; found in model_signal.py
-        data_timecourse = fmri_utils.model_signal.data_timecourse(time_corrected_data, [])
+        data_timecourse = fmri_utils.model_signal.data_timecourse(motion_corrected_data, [])
 
         # Make event timecourse
-        event_timecourse = fmri_utils.model_signal.event_timecourse(event_corrected_data, [])
+        event_timecourse = fmri_utils.model_signal.event_timecourse(motion_corrected_data, [])
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print('Please enter the directory of the openfmri data')
+        quit()        
+    data_folder = sys.argv[1]
+    run_analysis(data_folder)

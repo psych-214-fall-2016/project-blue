@@ -44,10 +44,8 @@ The directory you choose to save the data in will be used to run the wrapper cod
 
 ## Run analysis
 
-To run the analysis, first download the project-blue repository and add its download location to your python path. Open ipython (or python) and import the fmri_utils module as so:
+To run the analysis, first download the project-blue repository and add its download location to your python path.
 
-    from fmri_utils.wrapper import run_analysis
+Run wrapper.py as so:
 
-Then call the run_analysis function as so:
-
-    run_analysis('directory_of_openfmri_data_you_downloaded')
+    python wrapper.py directory_of_openfmri_data_you_downloaded
