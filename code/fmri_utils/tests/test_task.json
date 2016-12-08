@@ -1,0 +1,14 @@
+{
+    "RepetitionTime": 2.0,
+    "TaskName": "Visual imagery false memory",
+    "EchoTime": 0.40,
+    "FlipAngle": 90,
+    "SliceTiming": [0.08, 1.08, 0.15, 1.15, 0.23, 1.23, 0.31, 1.31, 0.38, 1.38, 0.46, 1.46, 0.54, 1.54, 0.62, 1.62, 0.69, 1.69, 0.77, 1.77, 0.85, 1.85, 0.92, 1.92, 1.00, 2.00],
+    "SliceEncodingDirection": "k-",
+    "MultibandAccellerationFactor": 4,
+    "ParallelReductionFactorInPlane": 2,
+    "PhaseEncodingDirection": "j",
+    "Manufacturer": "General Electric",
+    "ManufacturersModelName": "Signa HDe",
+    "MagneticFieldStrength": 1.5
+}

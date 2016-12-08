@@ -46,3 +46,62 @@ def search_directory(start_dir, expr):
         elif re.search(expr, d) != None:
             file_paths.append(d)
     return file_paths
+
+def get_contents(filename, var_list):
+    """ Return variables within a file
+    Parameters
+    ----------
+    filename : string
+        filename to extract variables from
+    var_list : list
+        variables to extract from filename
+    Returns
+    -------
+    outputs : list
+        variables evaluated from filenames
+    Example
+    -------
+    filename = 'task-visualimageryfalsememory_bold.json'
+    var_list = ['RepetitionTime', 'TaskName', 'SliceTiming']
+    outputs = get_contents(filename, var_list)
+    outputs =
+    [2.0,
+     'Visual imagery false memory',
+     [0.08,
+      1.08,
+      0.15,
+      1.15,
+      0.23,
+      1.23,
+      0.31,
+      1.31,
+      0.38,
+      1.38,
+      0.46,
+      1.46,
+      0.54,
+      1.54,
+      0.62,
+      1.62,
+      0.69,
+      1.69,
+      0.77,
+      1.77,
+      0.85,
+      1.85,
+      0.92,
+      1.92,
+      1.0,
+      2.0]]
+    """
+    # open file
+    fobj = open(filename, 'rt')
+    contents = fobj.read()
+    fobj.close()
+    # create outputs
+    outputs = list()
+    # for each var in var_list, return value
+    for var in var_list:
+        m = re.search('"' + var + '": (.+),\n', contents)
+        outputs.append(eval(m.groups()[0]))
+    return outputs
