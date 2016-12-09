@@ -27,19 +27,33 @@ def run_analysis(data_folder):
     # files directly.
     TR = 2
 
-    # data_folder = '/Users/kayserlab/Documents/Psych214/data'
+    # 'event_file_index' initializes and advances the corresponding event file to the
+    # current data file being analyzed
+    event_file_index = 0
+    # 'event_conditions' lists the event types found in each run's event file to
+    # use in function model_signal.event_timecourse()
+    event_conditions = ['hit', 'omiss', 'false_alarm', 'cor_rejec']
+
     # Each subject has 2 runs: the first is the encoding run, and the second is the
     # retrieval run.
     run01_files = fmri_utils.dir_utils.search_directory(data_folder, '.*run-01_bold.nii.gz')
     run02_files = fmri_utils.dir_utils.search_directory(data_folder, '.*run-02_bold.nii.gz')
     all_data_files = fmri_utils.dir_utils.search_directory(data_folder, '.*bold.nii.gz')
-    # 'sub-01_task-visualimageryfalsememory_run-01_bold.nii.gz'
+
+    # Each subject also has an events file associated with each run, which
+    # contains the onsets/durations for the task and the event_type
+    event01_files = fmri_utils.dir_utils.search_directory(data_folder, '.*run-01_events.tsv')
+    event02_files = fmri_utils.dir_utils.search_directory(data_folder, '.*run-02_events.tsv')
+    all_event_files = fmri_utils.dir_utils.search_directory(data_folder, '.*events.tsv')
 
     for data_file in all_data_files:
 
         # Load data
         img = nib.load(data_file)
         data = img.get_data()
+
+        # Retrieve number of TRs in data
+        number_TRs = data.shape[-1]
 
         # Validate data hashes
 
@@ -65,7 +79,11 @@ def run_analysis(data_folder):
         data_timecourse = fmri_utils.model_signal.data_timecourse(motion_corrected_data, [])
 
         # Make event timecourse
-        event_timecourse = fmri_utils.model_signal.event_timecourse(motion_corrected_data, [])
+        event_timecourse = fmri_utils.model_signal.event_timecourse(all_event_files[event_file_index], event_conditions, TR, number_TRs)
+        event_file_index = event_file_index + 1
+
+        # Create design matrix from timecourse
+        design_matrix = fmri_utils.model_signal.create_design_matrix(time_course, tr, n_tr, outliers=range(0,4))
 
 
 if __name__ == '__main__':
