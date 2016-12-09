@@ -4,6 +4,7 @@
 # import os and regex
 import os
 import re
+import hashlib
 
 def search_directory(start_dir, expr):
     """ Returns fullpath filenames with expr within start_dir
@@ -105,3 +106,56 @@ def get_contents(filename, var_list):
         m = re.search('"' + var + '": (.+),\n', contents)
         outputs.append(eval(m.groups()[0]))
     return outputs
+
+def file_hash(filename):
+    """ Get byte contents of filename, return SHA1 hash
+    Parameters
+    ----------
+    filename : str
+        Name of file to read
+    Returns
+    -------
+    hash : str
+        SHA1 hexadecimal hash string for contents of filename
+    """
+    # Open the file, read contents as bytes.
+    fobj = open(filename, 'rb')
+    contents = fobj.read()
+    fobj.close()
+    # Calculate, return SHA1 has on the bytes from the file.
+    return hashlib.sha1(contents).hexdigest()
+
+def validate_data(data_directory):
+    """ Read hashes_file, check hashes
+    Parameters
+    ----------
+    data_directory : str
+        directory containing data_hashes.txt file
+    Returns
+    -------
+    None
+    Raises
+    ------
+    ValueError:
+        If hash value for any file is different from hash value recorded in
+        data_directory/data_hashes.txt
+    """
+    # initialize valid as true
+    valid = True
+    # Read lines from ``data_hashes.txt`` file.
+    fobj = open(data_directory + '/data_hashes.txt', 'rt')
+    lines = fobj.readlines()
+    fobj.close()
+    # Split into SHA1 hash and filename
+    split_lines = [line.split() for line in lines]
+    # Calculate actual hash for given filename.
+    for line in split_lines:
+        fhash = file_hash(data_directory + '/' + line[1])
+        # If hash for filename is not the same as the one in the file,
+        # raise ValueError
+        if fhash != line[0]:
+            print('Hash mismatch in file: /' + line[1])
+            valid = False
+    # if all valid, print validated
+    if valid:
+        print('Files validated')
