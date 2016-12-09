@@ -95,7 +95,7 @@ def test_event_timecourse():
 def test_hrf():
     # create random tr and set of times
     tr = np.random.randint(1,4) + np.random.rand(1)
-    times = np.arange(0, np.random.randint(100), tr)
+    times = np.arange(0, np.random.randint(1, 100), tr)
     # create peak values and undershoot values
     peak_values = gamma.pdf(times, 6)
     undershoot_values = gamma.pdf(times, 12)
