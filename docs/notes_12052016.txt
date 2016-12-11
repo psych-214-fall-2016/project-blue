@@ -1,0 +1,26 @@
+Notes from 12/5/16 presentation
+
+JW
+
+Comments I thought were important:
+	•	Top level script (wrapper) should be "extremely clean and clear" 
+	•	In wrapper, put study-specific details "outside of loop" (like TR)
+	•	JB would prefer that TR (other info?) is called from a data file - we could write a 'study_parameters' module that gathers this info
+	•	For outlier detection, note outlier volumes as a column in an array, then take out after HRF convolution 
+	•	Fix slice timing to address problem with first volume
+	•	Write a test to check slice timing for a few slices "by hand"
+	•	Put in a polynomial drift filter that uses column from outlier detector
+	•	Can regress out dummy scans
+	•	Extended discussion of whether we can use a contrast (pic - word) to define the ROI for a contrast included within the first (FA-CR) - we'll need to discuss this
+Other comments we don't necessarily need to address:
+	•	"How noisy are these visual imagery questionnaires?"
+	•	Are we just comparing strong and weak memory rather than false memory?
+	•	Could check if design and contrast matrices are orthogonal
+	•	Is there useful information outside of the ROI?
+
+MN
+
+	•	Adding to "For outlier detection, note outlier volumes as a column in an array, then take out after HRF convolution"--> add the outlier 0/1 column to the design matrix
+	•	Adding to"Write a test to check slice timing for a few slices "by hand""--> can use interpolation equation found on Wikipedia
+	•	Adding to "Extended discussion of whether we can use a contrast (pic - word) to define the ROI for a contrast included within the first (FA-CR) - we'll need to discuss this"--> check whether the contrast columns are orthogonal to make sure they are valid for use. 
+
