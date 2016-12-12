@@ -3,8 +3,8 @@ One test for wrapper could run a subject through it just to make sure each step 
 Making sure line coverage gets the whole wrapper
 
 To complete:
-1. Wrapper
-2. Test for wrapper
+1. Wrapper (Justin)
+2. Test for wrapper (Justin)
 3. README - pretty much done
 4. Filter - goes into model_signal and goes into event matrix
 5. Slice Timing (Joe)
