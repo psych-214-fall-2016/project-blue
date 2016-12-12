@@ -39,7 +39,7 @@ def slice_timing_corr(data, TR):
     #For each slice (z)
     for z in range(data.shape[2]):
         #Calculate the time series of acquisition
-        slice_z_times = np.array(np.array(time_offsets) + (TR * z))
+        slice_z_times = times_slice_0 + time_offsets[z]
         #For each x coordinate
         for x in range(data.shape[0]):
             #For each y coordinate
