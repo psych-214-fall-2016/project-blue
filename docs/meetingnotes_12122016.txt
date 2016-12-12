@@ -1,0 +1,27 @@
+Melissa will push what she has for the wrapper
+One test for wrapper could run a subject through it just to make sure each step works in sequence
+Making sure line coverage gets the whole wrapper
+
+To complete:
+1. Wrapper
+2. Test for wrapper
+3. README - pretty much done
+4. Filter - goes into model_signal and goes into event matrix
+5. Slice Timing (Joe)
+6. Correlation function in wrapper - pick best questionnaire for regression
+7. Finalize hypotheses
+8. Evaluations
+9. Report?
+
+Justin already wrote code for README to get data from website 
+
+We do want to include the first time point - so we should have padding for slice timing
+
+ROI related to visual cortex - pictures vs words
+Could use “correct recall” from retrieval trials for the ROI
+	“false memory” rather than “false imagery”
+ROI: Run 2 [Hits + Correct Rejections] - [Misses + False Alarms]
+Analysis: Run 1 [ROI FA] - [ROI CR]
+When you incorrectly recalled something - what was going on when you first saw that image
+
+Slice timing test could use formula to manually test slices
