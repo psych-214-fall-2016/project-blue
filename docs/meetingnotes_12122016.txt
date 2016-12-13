@@ -25,3 +25,5 @@ Analysis: Run 1 [ROI FA] - [ROI CR]
 When you incorrectly recalled something - what was going on when you first saw that image
 
 Slice timing test could use formula to manually test slices
+
+Review questionaire data and pick evaluation that is most robust for correlation with the t-value map (Melissa)
