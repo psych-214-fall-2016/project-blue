@@ -17,8 +17,7 @@ import nibabel as nib
 
 # This import needs the code directory on the Python PATH
 from fmri_utils import data_timecourse, create_design_matrix, \
-     event_timecourse, hrf, beta_res_calc, create_contrast_img, \
-     compute_tstats
+     event_timecourse, beta_res_calc, compute_tstats, spm_hrf
 
 def test_data_timecourse():
     # get data
@@ -29,19 +28,19 @@ def test_data_timecourse():
     # get timecourse from coord manually
     t_c0 = data[coord[0],coord[1],coord[2]]
     # get timecourse from data_timecourse
-    t_c1 = data_timecourse(EXAMPLE_FULLPATH, coord, [])
+    t_c1 = data_timecourse(data, coord, [])
     # assert same for coordinates
     assert np.allclose(t_c0, t_c1, rtol=1e-4)
     # create random mask
     mask = np.random.randint(2,size=data.shape[:-1]).astype(bool)
     # get timecourse for mask
     t_c2 = data[mask].T
-    t_c3 = data_timecourse(EXAMPLE_FULLPATH, [], mask)
+    t_c3 = data_timecourse(data, [], mask)
     # assert same for masks
     assert np.allclose(t_c2, t_c3, rtol=1e-4)
     # get timecourse for all voxels
     t_c4 = np.reshape(data, (np.prod(data.shape[:-1]), data.shape[-1])).T
-    t_c5 = data_timecourse(EXAMPLE_FULLPATH, [], [])
+    t_c5 = data_timecourse(data, [], [])
     # assert same for all voxels
     assert np.allclose(t_c4, t_c5, rtol=1e-4)
 
@@ -56,7 +55,7 @@ def test_create_design_matrix():
     t_c = np.random.randint(2,size=(n_tr, col_n))
     # create design matrix manually
     des0 = np.ones((n_tr, t_c.shape[1]))
-    hrf_at_trs = hrf(np.arange(0, 30, tr))
+    hrf_at_trs = spm_hrf(np.arange(0, 30, tr))
     n_to_remove = len(hrf_at_trs) - 1
     for i in range(t_c.shape[1]):
         convolved = np.convolve(t_c[:,i], hrf_at_trs)
@@ -92,21 +91,6 @@ def test_event_timecourse():
     # assert same timecourse
     assert np.allclose(tc0, tc1, rtol=1e-4)
 
-def test_hrf():
-    # create random tr and set of times
-    tr = np.random.randint(1,4) + np.random.rand(1)
-    times = np.arange(0, np.random.randint(1, 100), tr)
-    # create peak values and undershoot values
-    peak_values = gamma.pdf(times, 6)
-    undershoot_values = gamma.pdf(times, 12)
-    # combine and scale to .6
-    values0 = peak_values - 0.35 * undershoot_values
-    values0 = values0 / np.max(values0) * 0.6
-    # get values from hrf
-    values1 = hrf(times)
-    # assert same values
-    assert np.allclose(values0, values1, rtol=1e-4)
-
 def test_beta_res_calc():
     # get random data
     X0 = np.random.randn(100)
@@ -124,19 +108,6 @@ def test_beta_res_calc():
     # assert same betas and residuals
     assert np.allclose(B0, B1, rtol=1e-4)
     assert np.allclose(e0, e1, rtol=1e-4)
-
-def test_create_contrast_img():
-    # create random beta maps
-    vol_shape = np.random.randint(1, 100, size=(3,))
-    B = np.random.randn(2, np.prod(vol_shape))
-    C = np.array([0, 1])
-    # calculate contrast map
-    Bmap = C.T.dot(B)
-    Cmap0 = np.reshape(Bmap, (vol_shape))
-    # get cmap from create_contrast_img
-    Cmap1 = create_contrast_img(B, C, vol_shape)
-    # assert same maps
-    assert np.allclose(Cmap0, Cmap1, rtol=1e-4)
 
 def test_compute_tstats():
     # create vol shape
