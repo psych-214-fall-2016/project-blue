@@ -19,9 +19,9 @@ import nibabel as nib
 def slice_timing_corr(data, TR):
 
     #import timing info from openfmri json file
-    #outputs = get_contents('task-visualimageryfalsememory_bold.json', ['SliceTiming'])
-    #time_offsets = outputs[0]
-    time_offsets = [0.08, 1.08, 0.15, 1.15, 0.23, 1.23, 0.31, 1.31, 0.38, 1.38, 0.46, 1.46, 0.54, 1.54, 0.62, 1.62, 0.69, 1.69, 0.77, 1.77, 0.85, 1.85, 0.92, 1.92, 1.00, 2.00]
+    outputs = get_contents('task-visualimageryfalsememory_bold.json', ['SliceTiming'])
+    time_offsets = outputs[0]
+    #time_offsets = [0.08, 1.08, 0.15, 1.15, 0.23, 1.23, 0.31, 1.31, 0.38, 1.38, 0.46, 1.46, 0.54, 1.54, 0.62, 1.62, 0.69, 1.69, 0.77, 1.77, 0.85, 1.85, 0.92, 1.92, 1.00, 2.00]
 
     #get timing info
     vol_nos = np.arange(data.shape[-1])
