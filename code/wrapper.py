@@ -8,7 +8,7 @@ estimated within the first analysis mask based on the contrast of false alarm
 greater than correct rejection. At this point, the t values from the
 masked voxels are averaged. Once a t value has been obtained for each subject,
 Pearson correlations are calculated between the t values and the following
-clinical scores: Launay-Slade Hallucination Scale, Visual imagery score, and
+clinical scores: Launay-Slade Hallucination Scale and
 Peters Delusion Inventory scale.
 
 The following modules are run when analyzing data:
