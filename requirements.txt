@@ -2,3 +2,4 @@
 numpy
 nibabel
 scipy
+skimage
