@@ -8,6 +8,7 @@ y = y0 + (x - x0) * (y1 - y0) / (x1 - x0)
 INPUTS:
 1) functional data that has gone through outlier detection
 2) TR from scanning
+3) Time offsets for each slice (time slices were collected in scanner)
 
 OUTPUT:
 1) new_data: Resliced, time corrected data
@@ -17,12 +18,7 @@ import numpy as np
 import nibabel as nib
 from fmri_utils import dir_utils
 
-def slice_timing_corr(data, TR):
-
-    #import timing info from openfmri json file
-    outputs = dir_utils.get_contents('../../data/task-visualimageryfalsememory_bold.json', ['SliceTiming'])
-    time_offsets = outputs[0]
-    #time_offsets = [0.08, 1.08, 0.15, 1.15, 0.23, 1.23, 0.31, 1.31, 0.38, 1.38, 0.46, 1.46, 0.54, 1.54, 0.62, 1.62, 0.69, 1.69, 0.77, 1.77, 0.85, 1.85, 0.92, 1.92, 1.00, 2.00]
+def slice_timing_corr(data, TR, time_offsets):
 
     #get timing info
     vol_nos = np.arange(data.shape[-1])
