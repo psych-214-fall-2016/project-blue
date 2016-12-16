@@ -5,14 +5,15 @@
 import numpy as np
 import numpy.linalg as npl
 import nibabel as nib
+from fmri_utils import spm_hrf
 import scipy.stats as sst
 from scipy.stats import gamma
 
-def data_timecourse(data_fname, coord, mask=[]):
+def data_timecourse(data, coord, mask=[]):
     """ return data time course for coordinate or all voxels
     Parameters
     ----------
-    data_fname : str, a data filename to return timecourse
+    data : array of data to return as timecourse
     coord : array of coordinates or empty array to return all timecourses
     mask : array of voxels to include in analysis [default is all voxels]
 
@@ -23,9 +24,6 @@ def data_timecourse(data_fname, coord, mask=[]):
      """
     # ensure coord is array
     coord = np.array(coord)
-    # load data
-    img = nib.load(data_fname)
-    data = img.get_data()
     # get n_vols and vol_shape
     n_vols = data.shape[-1]
     vol_shape = data.shape[:-1]
@@ -59,7 +57,7 @@ def create_design_matrix(time_course, tr, n_tr, outliers=range(0,4)):
     # create tr_times
     tr_times = np.arange(0, 30, tr)
     # get hrf_at_trs
-    hrf_at_trs = hrf(tr_times)
+    hrf_at_trs = spm_hrf(tr_times)
     n_to_remove = len(hrf_at_trs) - 1
     # convolve for each column and input to design matrix
     for i in range(time_course.shape[1]):
@@ -105,25 +103,6 @@ def event_timecourse(task_fname, condition_list, tr, n_tr):
         time_course[onset:onset + duration, condition_list.index(condition)] = 1
     return time_course
 
-def hrf(times):
-    """ Return values for HRF at given times
-    Parameters
-    ----------
-    times : number or array, timepoints to sample hrf
-
-    Returns
-    -------
-    hrf : number or array, hrf values at given timepoints
-    """
-    # Gamma pdf for the peak
-    peak_values = gamma.pdf(times, 6)
-    # Gamma pdf for the undershoot
-    undershoot_values = gamma.pdf(times, 12)
-    # Combine them
-    values = peak_values - 0.35 * undershoot_values
-    # Scale max to 0.6
-    return values / np.max(values) * 0.6
-
 def beta_res_calc(Y, X):
     """ Return beta hat and residuals
     Parameters
@@ -141,25 +120,6 @@ def beta_res_calc(Y, X):
     # calculate residuals
     res = Y - X.dot(B)
     return B, res
-
-def create_contrast_img(B, C, vol_shape):
-    """ Return Contrast image of B map
-    Parameters
-    ----------
-    B : array, beta hat values
-    C : array, contrast vector
-    vol_shape : array, shape of volume
-
-    Returns
-    -------
-    Cmap : contrast image of beta values
-    """
-    # ensure contrast is array
-    C = np.array(C)
-    # create contrast map
-    Cmap = C.T.dot(B)
-    # return reshaped image
-    return np.reshape(Cmap, (vol_shape))
 
 def compute_tstats(C, X, B, res, vol_shape):
     """ Computes t statistics and p-values and returns 3D t_map and p_map
