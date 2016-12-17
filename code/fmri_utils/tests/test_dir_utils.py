@@ -34,15 +34,18 @@ def test_get_contents():
 def test_dlm_read():
     # check that Age is the same as below
     filename = os.path.join(MY_DIR, 'test_dlm_read.tsv')
-    column = ['Age']
-    outputs0 = np.array([ 35.,  26.,  31.,  31.,  33.,  47.,  24.,  28.,  31.,  36.,  37.,
-         51.,  32.,  39.,  32.,  33.,  40.,  24.,  60.,  44.,  38.,  54.,
-         38.,  40.,  49.,  37.])
+    column = ['test2']
+    outputs0 = [np.array([0,1,2,3,4,5,6,7,8,9]), np.array(['a','b','c','d',
+    'e','f','g','h','i','j'])]
     # get outputs using dlm_read
-    outputs1 = dlm_read(filename, '\t', ['Age'])[0]
-    # assert same
-    assert np.allclose(outputs0, outputs1, rtol=1e-4)
-
+    outputs1 = dlm_read(filename, '\t', column)[0]
+    # assert same first test
+    assert np.all(outputs0[1] == outputs1)
+    # test all columns
+    outputs1 = dlm_read(filename, '\t', [])
+    # assert same all columns
+    assert np.all(outputs0[0] == outputs1[0])
+    assert np.all(outputs0[1] == outputs1[1])
 
 def test_file_hash():
     # set filename to test_dir_utils
