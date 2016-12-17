@@ -15,6 +15,9 @@ import nibabel as nib
 # This import needs the code directory on the Python PATH
 from fmri_utils import mean_detector, std_detector, iqr_detector
 
+# set random seed
+np.random.seed(1990)
+
 def test_mean_detector():
     # create data of ones and outliers to set large means
     data = np.ones((64,64,30,100))
