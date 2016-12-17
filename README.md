@@ -46,18 +46,18 @@ The directory you choose to save the data in will be used to run the wrapper cod
 
 Download data:
 
-cd data/
-curl -LO http://openfmri.s3.amazonaws.com/tarballs/ds000203_R1.0.1_metadata.zip
-unzip ds000203_R1.0.1_metadata.zip
-rm ds000203_R1.0.1_metadata.zip
-curl -LO http://openfmri.s3.amazonaws.com/tarballs/ds000203_R1.0.1_data.zip
-unzip ds000203_R1.0.1_data.zip
-rm ds000203_R1.0.1_data.zip
-cd ..
+    cd data/
+    curl -LO http://openfmri.s3.amazonaws.com/tarballs/ds000203_R1.0.1_metadata.zip
+    unzip ds000203_R1.0.1_metadata.zip
+    rm ds000203_R1.0.1_metadata.zip
+    curl -LO http://openfmri.s3.amazonaws.com/tarballs/ds000203_R1.0.1_data.zip
+    unzip ds000203_R1.0.1_data.zip
+    rm ds000203_R1.0.1_data.zip
+    cd ..
 
 ## Validate data
 
-scripts/validate_data.py data
+    python3 code/scripts/validate_data.py data
 
 ## Run analysis
 
@@ -65,7 +65,7 @@ To run the analysis, first download the project-blue repository and add its down
 
 Run wrapper.py:
 
-    python scripts/wrapper.py data data 1
+    python3 code/scripts/wrapper.py data data 1
     
 ## Contributors
 
