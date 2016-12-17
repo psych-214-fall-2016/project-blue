@@ -109,7 +109,7 @@ def run_analysis(data_dir, params_dir, verbose=True):
 
             # Begin slice-timing correction found in slice_timing_corr.py
             print_verbose('Running slice time correction...', verbose)
-            stc_data, stc_series = slice_timing_corr(data, tr, slicetiming)
+            stc_data = slice_timing_corr(data, tr, slicetiming)
 
             # Apply motion correction from motion_correction.py
             # Use middle volume as the reference image
