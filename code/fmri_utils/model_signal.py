@@ -186,7 +186,7 @@ def compute_tstats(C, X, B, res, mask):
     df_error = n - x_rank
     # calculate sigma_2 and c_b_cov
     sigma_2 = np.sum(res ** 2, axis=0) / df_error
-    c_b_cov = C.dot(npl.pinv(X.T.dot(X))).dot(C)
+    c_b_cov = C.T.dot(npl.pinv(X.T.dot(X))).dot(C)
     # calculate t statistics
     t = C.dot(B) / np.sqrt(sigma_2 * c_b_cov)
     # calculate p values

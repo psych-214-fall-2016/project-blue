@@ -23,6 +23,9 @@ from fmri_utils import data_timecourse, create_design_matrix, \
 # set random seed
 np.random.seed(1990)
 
+# set random seed
+np.random.seed(1990)
+
 def test_data_timecourse():
     # get data
     img = nib.load(EXAMPLE_FULLPATH)
