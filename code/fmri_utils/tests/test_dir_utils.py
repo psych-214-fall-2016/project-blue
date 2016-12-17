@@ -5,11 +5,10 @@ Test with ``py.test test_dir_utils.py``.
 
 import os
 import re
-import numpy as np
 import hashlib
 
 MY_DIR = os.path.dirname(__file__)
-from fmri_utils import search_directory, get_contents, dlm_read, file_hash, validate_data
+from fmri_utils import search_directory, get_contents, file_hash, validate_data
 
 def test_search_directory():
     # get fullpath for filename
@@ -30,19 +29,6 @@ def test_get_contents():
     outputs1 = get_contents(filename, var_list)
     # assert same
     assert outputs0 == outputs1
-
-def test_dlm_read():
-    # check that Age is the same as below
-    filename = os.path.join(MY_DIR, 'test_dlm_read.tsv')
-    column = ['Age']
-    outputs0 = np.array([ 35.,  26.,  31.,  31.,  33.,  47.,  24.,  28.,  31.,  36.,  37.,
-         51.,  32.,  39.,  32.,  33.,  40.,  24.,  60.,  44.,  38.,  54.,
-         38.,  40.,  49.,  37.])
-    # get outputs using dlm_read
-    outputs1 = dlm_read(filename, '\t', ['Age'])[0]
-    # assert same
-    assert np.allclose(outputs0, outputs1, rtol=1e-4)
-
 
 def test_file_hash():
     # set filename to test_dir_utils
