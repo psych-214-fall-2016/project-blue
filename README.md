@@ -1,10 +1,18 @@
-# project-template
+# project-blue
 
-Fall 2016 final project.
+Psych 214 Fall 2016 Final Project
 
-This file is in [Markdown
-format](http://daringfireball.net/projects/markdown), and should render nicely
-on the Github front page for this repository.
+[![Build Status](https://travis-ci.org/psych-214-fall-2016/project-blue.svg?branch=master)](https://travis-ci.org/psych-214-fall-2016/project-blue)
+
+This repository stores our fMRI methods course project investigating false visual memory. We took a dataset from openfMRI collected by Stephan-Otto and colleagues (https://openfmri.org/dataset/ds000203/). In the experiment, 26 healthy subjects were shown to images and words (run01, encoding), and later asked to recall whether they had seen an image or a word (run02, retrieval). 
+Our analysis consists of four steps: 
+1) preprocessing of the data
+2) contrasting retrieval (run02) [Hits + Correct Rejections] vs [Misses + False Alarms], to get an ROI/mask for each subject, 
+3) within the mask, contrasting encoding (run01) subsequent [False Alarms] vs [Correct Rejections] to generate a t-value for each subject, 
+4) regressing t-values with subjective ratings of visual imagery. 
+Through this analysis, we aim to determine whether differences in brain activation during inaccurate memory retrieval are associated with individual differences in visual imagery.
+
+Thanks to Matthew Brett, JB Poline, and Arielle Tambini for their guidance with this project
 
 ## Install
 
@@ -58,3 +66,10 @@ To run the analysis, first download the project-blue repository and add its down
 Run wrapper.py:
 
     python scripts/wrapper.py data data 1
+    
+## Contributors
+
+Melissa Newton
+Peiwu Qin
+Justin Theiss
+Joe Winer
