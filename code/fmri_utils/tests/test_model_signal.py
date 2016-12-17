@@ -14,10 +14,11 @@ import numpy.linalg as npl
 import scipy.stats as sst
 from scipy.stats import gamma
 import nibabel as nib
+from skimage.filters import threshold_otsu
 
 # This import needs the code directory on the Python PATH
 from fmri_utils import data_timecourse, create_design_matrix, \
-     event_timecourse, beta_res_calc, compute_tstats, spm_hrf
+     event_timecourse, poly_drift, beta_res_calc, compute_tstats, spm_hrf
 
 def test_data_timecourse():
     # get data
@@ -25,24 +26,32 @@ def test_data_timecourse():
     data = img.get_data()
     # get random coordinates
     coord = [np.random.randint(data.shape[i]) for i in range(3)]
+    mask0 = np.zeros(data.shape[:-1]).astype(bool)
+    mask0[coord[0], coord[1], coord[2]] = True
     # get timecourse from coord manually
-    t_c0 = data[coord[0],coord[1],coord[2]]
+    t_c0 = data[mask0].T
     # get timecourse from data_timecourse
-    t_c1 = data_timecourse(data, coord, [])
+    t_c1, mask1 = data_timecourse(data, coord, [])
     # assert same for coordinates
     assert np.allclose(t_c0, t_c1, rtol=1e-4)
+    assert np.allclose(mask0, mask1, rtol=1e-4)
     # create random mask
-    mask = np.random.randint(2,size=data.shape[:-1]).astype(bool)
+    mask0 = np.random.randint(2,size=data.shape[:-1]).astype(bool)
     # get timecourse for mask
-    t_c2 = data[mask].T
-    t_c3 = data_timecourse(data, [], mask)
+    t_c2 = data[mask0].T
+    t_c3, mask1 = data_timecourse(data, [], mask0)
     # assert same for masks
     assert np.allclose(t_c2, t_c3, rtol=1e-4)
-    # get timecourse for all voxels
-    t_c4 = np.reshape(data, (np.prod(data.shape[:-1]), data.shape[-1])).T
-    t_c5 = data_timecourse(data, [], [])
+    assert np.allclose(mask0, mask1, rtol=1e-4)
+    # get timecourse for thresholded voxels
+    mean = data.mean(axis=-1)
+    thresh = threshold_otsu(mean)
+    mask0 = mean > thresh
+    t_c4 = data[mask0].T
+    t_c5, mask1 = data_timecourse(data, [], [])
     # assert same for all voxels
     assert np.allclose(t_c4, t_c5, rtol=1e-4)
+    assert np.allclose(mask0, mask1, rtol=1e-4)
 
 def test_create_design_matrix():
     # create random number trs, tr, and outliers
@@ -64,8 +73,11 @@ def test_create_design_matrix():
     R = np.zeros((n_tr, n_outliers))
     for i in range(n_outliers):
         R[outliers[i],i] = 1
-    # stack des0, R, ones
-    des0 = np.column_stack([des0, R, np.ones((n_tr,))])
+    # get polynomial drift
+    times = np.arange(0, tr*n_tr, tr)
+    D = poly_drift(times)
+    # stack des0, R, D
+    des0 = np.column_stack([des0, R, D])
     # create design matrix from module
     des1 = create_design_matrix(t_c, tr, n_tr, outliers)
     # assert same
@@ -91,6 +103,16 @@ def test_event_timecourse():
     # assert same timecourse
     assert np.allclose(tc0, tc1, rtol=1e-4)
 
+def test_poly_drift():
+    # load test_poly_drift.txt
+    D0 = np.loadtxt(pjoin(MY_DIR,'test_poly_drift.txt'))
+    # create times
+    times = np.arange(0, 2*267, 2)
+    # get matrix using poly_drift
+    D1 = poly_drift(times, 3)
+    # assert same
+    assert np.allclose(D0, D1, rtol=1e-4)
+
 def test_beta_res_calc():
     # get random data
     X0 = np.random.randn(100)
@@ -112,6 +134,7 @@ def test_beta_res_calc():
 def test_compute_tstats():
     # create vol shape
     vol_shape = [64,64,30]
+    mask = np.ones(vol_shape).astype(bool)
     # create random data and design matrix
     n = 60
     Y = np.random.randint(1, 100, size=(n, np.prod(vol_shape)))
@@ -125,7 +148,7 @@ def test_compute_tstats():
     C = np.array([1, -1])
     # calculate df_error and sigma_2
     df_error = n - npl.matrix_rank(X)
-    sigma_2 = np.sum(res ** 2) / df_error
+    sigma_2 = np.sum(res ** 2, axis=0) / df_error
     # calculate c_b_cov
     c_b_cov = C.T.dot(npl.pinv(X.T.dot(X))).dot(C)
     # calculate t and p values
@@ -133,10 +156,12 @@ def test_compute_tstats():
     t_dist = sst.t(df_error)
     p = (1 - t_dist.cdf(np.abs(t))) * 2
     # reshape t and p values to tmap0 and pmap0
-    tmap0 = np.reshape(t, vol_shape)
-    pmap0 = np.reshape(p, vol_shape)
+    tmap0 = np.zeros(vol_shape)
+    pmap0 = np.zeros(vol_shape)
+    tmap0[mask] = t
+    pmap0[mask] = p
     # get tmap and pmap from compute_tstats
-    tmap1, pmap1 = compute_tstats(C, X, B, res, vol_shape)
+    tmap1, pmap1 = compute_tstats(C, X, B, res, mask)
     # assert same tmaps and pmaps
     assert np.allclose(tmap0, tmap1, rtol=1e-4)
     assert np.allclose(pmap0, pmap1, rtol=1e-4)
