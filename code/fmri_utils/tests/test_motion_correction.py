@@ -19,10 +19,13 @@ from scipy.optimize import fmin_powell
 from fmri_utils import create_rotmat, transformation_matrix, \
      apply_transform, cost_function, optimize_params
 
+# set random seed
+np.random.seed(1990)
+
 def test_create_rotmat():
     # create random rotations
     rotations = np.random.rand(3)
-    #
+    # x matrix
     rot_x = np.array([[1, 0, 0],
                       [0, np.cos(rotations[0]), -np.sin(rotations[0])],
                       [0, np.sin(rotations[0]), np.cos(rotations[0])]])
