@@ -4,6 +4,7 @@
 # import os and regex
 import os
 import re
+import numpy as np
 import hashlib
 
 def search_directory(start_dir, expr):
@@ -106,6 +107,43 @@ def get_contents(filename, var_list):
         m = re.search('"' + var + '": (.+),\n', contents)
         outputs.append(eval(m.groups()[0]))
     return outputs
+
+def dlm_read(filename, dlm='\t', cols=[]):
+    """ Return delimited array from filename
+    Parameters
+    ----------
+    filename : str
+        Name of file to read
+    dlm : str
+        delimiter to separate columns
+    cols : list
+        column names to return (default is [], all)
+    Returns
+    -------
+    output : list
+        columns returned as float or string
+    """
+    # load data as list
+    dlm_array = np.genfromtxt(filename, dtype='str', delimiter=dlm)
+    # get cols
+    if len(cols) > 0:
+        idx = np.array([i for i, x in enumerate(dlm_array[0,:]) if x in cols])
+    else:
+        idx = np.arange(dlm_array.shape[1])
+    # remove headers and get idx columns
+    dlm_array = dlm_array[1:,idx]
+    # init output
+    output = list()
+    # check if digit
+    for i in range(dlm_array.shape[1]):
+        # replace ' ' with 'nan'
+        [dlm_array[:,i].put(n, 'nan') for n, x in enumerate(dlm_array[:,i]) if x==' ']
+        # if all digits, set as float
+        if np.all([np.logical_or(re.search('^[-\d+\.]+$',x) != None,x=='nan') for x in dlm_array[:,i]]):
+            output.append(dlm_array[:,i].astype(float))
+        else: # otherwise set as str
+            output.append(dlm_array[:,i])
+    return output
 
 def file_hash(filename):
     """ Get byte contents of filename, return SHA1 hash
