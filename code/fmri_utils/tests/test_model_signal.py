@@ -19,6 +19,9 @@ import nibabel as nib
 from fmri_utils import data_timecourse, create_design_matrix, \
      event_timecourse, beta_res_calc, compute_tstats, spm_hrf
 
+# set random seed
+np.random.seed(1990)
+
 def test_data_timecourse():
     # get data
     img = nib.load(EXAMPLE_FULLPATH)
@@ -125,7 +128,7 @@ def test_compute_tstats():
     C = np.array([1, -1])
     # calculate df_error and sigma_2
     df_error = n - npl.matrix_rank(X)
-    sigma_2 = np.sum(res ** 2) / df_error
+    sigma_2 = np.sum(res ** 2, axis=0) / df_error
     # calculate c_b_cov
     c_b_cov = C.T.dot(npl.pinv(X.T.dot(X))).dot(C)
     # calculate t and p values

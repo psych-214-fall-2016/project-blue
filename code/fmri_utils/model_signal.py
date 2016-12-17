@@ -148,7 +148,7 @@ def compute_tstats(C, X, B, res, vol_shape):
     x_rank = npl.matrix_rank(X)
     df_error = n - x_rank
     # calculate sigma_2 and c_b_cov
-    sigma_2 = np.sum(res ** 2) / df_error
+    sigma_2 = np.sum(res ** 2, axis=0) / df_error
     c_b_cov = C.T.dot(npl.pinv(X.T.dot(X))).dot(C)
     # calculate t statistics
     t = C.T.dot(B) / np.sqrt(sigma_2 * c_b_cov)
