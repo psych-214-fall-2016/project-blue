@@ -40,7 +40,7 @@ from fmri_utils import *
 
 def run_analysis(data_dir, params_dir, verbose=True):
     # load params file, get TR and slice time information
-    params_file = search_directory(params_dir, 'task-.*.json')[0]
+    params_file = search_directory(params_dir, 'task-visualimageryfalsememory_bold.json')[0]
     print_verbose('Loading parameters from ' + params_file, verbose)
     contents = get_contents(params_file,['RepetitionTime','SliceTiming'])
     tr = contents[0]
