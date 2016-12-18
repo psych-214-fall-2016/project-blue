@@ -15,7 +15,6 @@ The following modules are run when analyzing data:
 dir_utils (for getting filenames and retrieving study/participant data)
 detectors (for outlier detection)
 slice_timing_corr (for slice timing correction)
-motion_correction (for motion correction)
 model_signal (for estimating GLM)
 
 Parameters
@@ -111,20 +110,12 @@ def run_analysis(data_dir, params_dir, verbose=True):
             print_verbose('Running slice time correction...', verbose)
             stc_data = slice_timing_corr(data, tr, slicetiming)
 
-            # Apply motion correction from motion_correction.py
-            # Use middle volume as the reference image
-            print_verbose('Running motion correction...', verbose)
-            ref_vol = int(stc_data.shape[-1]/2)
-            data_img = nib.Nifti1Image(stc_data, img.affine)
-            mc_data, mc_params = optimize_params(data_img, data_img, ref_vol)
-            print_verbose('Final parameters: ', verbose)
-            print_verbose(mc_params, verbose)
-
             # set mask to empty if first run
             if x == 0:
                 mask = []
+
             # get data timecourse
-            Y, mask = data_timecourse(mc_data, [], mask)
+            Y, mask = data_timecourse(stc_data, [], mask)
 
             # get event timecourse
             event_tc = event_timecourse(event_files[x], event_conditions, tr, n_tr)
